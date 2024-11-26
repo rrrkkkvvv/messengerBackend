@@ -1,0 +1,7 @@
+{
+    "require": {
+        "firebase/php-jwt": "^6.10",
+        "google/apiclient": "2.15.0",
+        "cboden/ratchet": "^0.4.4"
+    }
+}
