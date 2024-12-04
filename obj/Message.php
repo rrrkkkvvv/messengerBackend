@@ -83,6 +83,40 @@ class Message {
             return ["success" => false,"message"=> "Error preparing request"];
         }
     }
+    function editMessage($message, $conversation_id) {
+        
+
+        $sql = "UPDATE " . $this->table_name . " SET message_text = :message_text, message_image = :message_image WHERE id = :message_id";
+
+
+        if ($stmt = $this->conn->prepare($sql)) {
+
+            $stmt->bindParam(':message_image', $message["message_image"], PDO::PARAM_STR);
+            $stmt->bindParam(':message_text', $message["message_text"], PDO::PARAM_STR);
+            $stmt->bindParam(':message_id', $message["message_id"], PDO::PARAM_INT);
+
+
+
+            if ($stmt->execute()) {
+                $conversationMessages = $this->getConversationMessages($conversation_id);
+                if($conversationMessages){
+
+                    
+                    return ["success" => true,"messages"=> $conversationMessages];
+                }else{
+                    echo "Error execution request: " . $this->conn->error;
+                    return ["success" => false,"message"=> "Cannot get messages from conversation"];
+                }
+          
+            } else {
+                echo "Error execution request: " . $this->conn->error;
+                return ["success" => false,"message"=> "Error execution request"];
+            }
+        } else {
+            echo "Error preparing request: " . $this->conn->error;
+            return ["success" => false,"message"=> "Error preparing request"];
+        }
+    }
     function getConversationMessages($conversation_id){
         $sql = "SELECT messages.message_text AS `message_text`, messages.message_image AS `message_image`,  users.name  AS `sender_name`, users.id  AS `sender_id`, messages.sent_at AS `sent_at`, messages.id AS `message_id` FROM ". $this->table_name." JOIN users ON messages.sender_id = users.id WHERE messages.conversation_id = :conversation_id ORDER BY messages.sent_at ASC";
         if ($stmt = $this->conn->prepare($sql)) {
