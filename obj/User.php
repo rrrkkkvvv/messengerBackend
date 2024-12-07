@@ -172,7 +172,46 @@ class User {
     }
 
 
+    function editUser($name, $picture, $id){
 
+        $sql = "";
+        if($name != NULL && $picture != NULL){
+            $sql = "UPDATE " . $this->table_name . " SET  name = :name, picture = :picture WHERE id = :id";
+        }else if($name != NULL && $picture == NULL){
+            $sql = "UPDATE " . $this->table_name . " SET  name = :name WHERE id = :id";
+        }else if($name == NULL && $picture != NULL){
+            $sql = "UPDATE " . $this->table_name . " SET  picture = :picture WHERE id = :id";
+        }else{
+            return ["success" => false, "message"=>"There is not enough data for edit user"];
+        }
+     
+
+        if ($stmt = $this->conn->prepare($sql)) {
+            if($name){
+                $stmt->bindParam(':name', $name, PDO::PARAM_STR);
+            }
+
+            if($picture){
+                $stmt->bindParam(':picture', $picture, PDO::PARAM_STR);
+            }
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+
+
+            $exec = $stmt->execute();
+            if ($exec) {
+                $currUser = $this->getUserById($id);
+                if($currUser["success"]){
+
+                    return ["success" => true,"user"=> $currUser["user"]];
+                }else{
+                    return ["success" => false, "message"=>"Cannot edit user"];
+                }
+
+            }else {
+                return ["success" => false, "message"=>"Cannot edit user"];
+            }
+        }
+    }
 
 
 }

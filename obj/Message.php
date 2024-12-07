@@ -86,7 +86,7 @@ class Message {
     function editMessage($message, $conversation_id) {
         
 
-        $sql = "UPDATE " . $this->table_name . " SET message_text = :message_text, message_image = :message_image WHERE id = :message_id";
+        $sql = "UPDATE " . $this->table_name . " SET message_text = :message_text, message_image = :message_image, edited_at = NOW() WHERE id = :message_id";
 
 
         if ($stmt = $this->conn->prepare($sql)) {
@@ -118,7 +118,7 @@ class Message {
         }
     }
     function getConversationMessages($conversation_id){
-        $sql = "SELECT messages.message_text AS `message_text`, messages.message_image AS `message_image`,  users.name  AS `sender_name`, users.id  AS `sender_id`, messages.sent_at AS `sent_at`, messages.id AS `message_id` FROM ". $this->table_name." JOIN users ON messages.sender_id = users.id WHERE messages.conversation_id = :conversation_id ORDER BY messages.sent_at ASC";
+        $sql = "SELECT messages.message_text AS `message_text`, messages.message_image AS `message_image`, messages.edited_at AS `edited_at`,  users.name  AS `sender_name`, users.id  AS `sender_id`, messages.sent_at AS `sent_at`, messages.id AS `message_id` FROM ". $this->table_name." JOIN users ON messages.sender_id = users.id WHERE messages.conversation_id = :conversation_id ORDER BY messages.sent_at ASC";
         if ($stmt = $this->conn->prepare($sql)) {
 
             $stmt->bindParam(':conversation_id', $conversation_id, PDO::PARAM_INT);
