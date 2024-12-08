@@ -101,14 +101,13 @@ class User {
     function signUp() {
 
         $hashed_password = password_hash($this->password, PASSWORD_DEFAULT);
-        $sql = "INSERT INTO " . $this->table_name . " (name, email, password, picture, google_id) VALUES (:name, :email, :password, :picture, :google_id)";
+        $sql = "INSERT INTO " . $this->table_name . " (name, email, password, google_id) VALUES (:name, :email, :password, :google_id)";
 
 
         if ($stmt = $this->conn->prepare($sql)) {
             $stmt->bindParam(':email', $this->email, PDO::PARAM_STR);
             $stmt->bindParam(':name', $this->name, PDO::PARAM_STR);
             $stmt->bindParam(':password', $hashed_password, PDO::PARAM_STR);
-            $stmt->bindParam(':picture', $this->picture, PDO::PARAM_STR);
             $stmt->bindParam(':google_id', $this->google_id, PDO::PARAM_STR);
 
             $exec =$stmt->execute();
@@ -175,11 +174,11 @@ class User {
     function editUser($name, $picture, $id){
 
         $sql = "";
-        if($name != NULL && $picture != NULL){
+        if($name  && ($picture || $picture === null)){
             $sql = "UPDATE " . $this->table_name . " SET  name = :name, picture = :picture WHERE id = :id";
-        }else if($name != NULL && $picture == NULL){
+        }else if($name && !$picture){
             $sql = "UPDATE " . $this->table_name . " SET  name = :name WHERE id = :id";
-        }else if($name == NULL && $picture != NULL){
+        }else if(!$name && ($picture || $picture === null)){
             $sql = "UPDATE " . $this->table_name . " SET  picture = :picture WHERE id = :id";
         }else{
             return ["success" => false, "message"=>"There is not enough data for edit user"];
@@ -191,7 +190,7 @@ class User {
                 $stmt->bindParam(':name', $name, PDO::PARAM_STR);
             }
 
-            if($picture){
+            if($picture || $picture === null){
                 $stmt->bindParam(':picture', $picture, PDO::PARAM_STR);
             }
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
@@ -199,7 +198,10 @@ class User {
 
             $exec = $stmt->execute();
             if ($exec) {
+                
                 $currUser = $this->getUserById($id);
+                unset($currUser["user"]["password"]);
+
                 if($currUser["success"]){
 
                     return ["success" => true,"user"=> $currUser["user"]];
