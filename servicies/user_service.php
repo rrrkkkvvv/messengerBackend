@@ -47,36 +47,23 @@ if($method == "GET"){
             exit();
         }
 
-        $user->email = $_GET['email'];
 
-        $stmt = $user->getUsers();
+
+        $getUsersRes = $user->getUsers($_GET['email']);
 
         $users_arr = array();
         $users_arr["message"] = "success";
         $users_arr["records"] = array();
        
 
-        if($stmt["success"]){
-            while ($row = $stmt["users"]->fetch(PDO::FETCH_ASSOC)) {
-                extract($row);
-    
-                $user = array(
-                    "id" => $id,
-                    "name" => $name,
-                    "picture" => $picture,
-                    "email" => $email,
-                );
-        
-                array_push($users_arr["records"], $user);
-            }
-    
-    
-    
-        
+        if($getUsersRes["success"]){    
+            $users_arr["records"] =$getUsersRes["users"];
         
             http_response_code(200);
             echo json_encode($users_arr);
         }
+
+
 
               
     }else{

@@ -34,13 +34,13 @@ class User {
         }
     }
 
-    function getUser(){
+    function getUserByEmail($user_email){
 
         $sql = "SELECT * FROM " . $this->table_name . " WHERE email = :email";
 
         if ($stmt = $this->conn->prepare($sql)) {
 
-            $stmt->bindParam(':email', $this->email, PDO::PARAM_STR);
+            $stmt->bindParam(':email', $user_email, PDO::PARAM_STR);
 
             $stmt->execute();
 
@@ -82,7 +82,7 @@ class User {
 
     function signIn() {
 
-        $currUserRes = $this->getUser();
+        $currUserRes = $this->getUserByEmail($this->email);
 
         if (!$currUserRes["success"]) {
             return ["success" => false, "message"=>"Account does not exists"];
@@ -112,7 +112,7 @@ class User {
 
             $exec =$stmt->execute();
             if ($exec) {
-                $currUser = $this->getUser();
+                $currUser = $this->getUserByEmail($this->email);
                 if($currUser["success"]){
                     $jwt = $this->token->createToken($currUser["user"]["id"]); 
 
@@ -151,18 +151,22 @@ class User {
         }
     }
 
-    function getUsers(){
+    function getUsers($user_email){
 
 
         $sql = "SELECT * FROM " . $this->table_name . ' WHERE email != :email;';
 
         if ($stmt = $this->conn->prepare($sql)) {
 
-            $stmt->bindParam(':email', $this->email, PDO::PARAM_STR);
+            $stmt->bindParam(':email', $user_email, PDO::PARAM_STR);
 
             $stmt->execute();
-
-            return ["success" => true, "users"=>$stmt];
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if($rows){
+                return ["success" => true, "users"=>$rows];
+            }else{
+                return ["success" => false, []];
+            }
 
         }else{
             return ["success" => false, "message" => "Error preparing request: " . $this->conn->error];

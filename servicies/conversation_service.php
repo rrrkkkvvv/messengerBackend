@@ -27,14 +27,14 @@ class Conversation_service implements MessageComponentInterface {
         parse_str($queryParams, $queryArray);
 
         if (!isset($queryArray['token'])) {
-            $from->send(json_encode(['message' => 'Unauthorized']));
-            $from->close();
+            $conn->send(json_encode(['message' => 'Unauthorized']));
+            $conn->close();
             return;
         }
         $isVerified = $this->token->verifyToken($queryArray['token']);
         if (!$isVerified) {
-            $from->send(json_encode(['message' => 'Unauthorized']));
-            $from->close();
+            $conn->send(json_encode(['message' => 'Unauthorized']));
+            $conn->close();
             return;
         }
         if (isset($queryArray['member_ids']) ) {
@@ -108,7 +108,7 @@ class Conversation_service implements MessageComponentInterface {
                         $messagesFromConv = $this->message->getConversationMessages($senderConversationId);
                         if($messagesFromConv){
                             
-                            $client->send(json_encode(["message"=>"Websocket message","messages"=>$messagesFromConv]));
+                            $client->send(json_encode(["message"=>"Update","messages"=>$messagesFromConv]));
                         }
                     }
                 }
@@ -129,7 +129,7 @@ class Conversation_service implements MessageComponentInterface {
                         $messagesFromConv = $this->message->getConversationMessages($senderConversationId);
                         if($messagesFromConv){
                             
-                            $client->send(json_encode(["message"=>"Websocket message","messages"=>$messagesFromConv]));
+                            $client->send(json_encode(["message"=>"Update","messages"=>$messagesFromConv]));
                         }
                     }
                 }
@@ -152,7 +152,7 @@ class Conversation_service implements MessageComponentInterface {
                         $messagesFromConv = $this->message->getConversationMessages($senderConversationId);
                         if($messagesFromConv){
                             
-                            $client->send(json_encode(["message"=>"Websocket message","messages"=>$messagesFromConv]));
+                            $client->send(json_encode(["message"=>"Update","messages"=>$messagesFromConv]));
                         }
                     }
                 }
