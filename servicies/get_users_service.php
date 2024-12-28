@@ -83,11 +83,72 @@ class Users_service implements MessageComponentInterface {
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
+        // $data = json_decode($msg, true);
+
+        // if (!isset($data['token'])) {
+        //     $from->send(json_encode(['message' => 'Unauthorized']));
+        //     $from->close();
+        //     return;
+        // }
+        // $isVerified = $this->token->verifyToken($data['token']);
+        // if (!$isVerified) {
+        //     $from->send(json_encode(['message' => 'Unauthorized']));
+        //     $from->close();
+        //     return;
+        // }
+        // // Making user with this email offline and send updated users lists for each others
+        // if (isset($data['userEmail'])) {
+        //     $userEmail = $data['userEmail'];
+        //     $usersOnline = [];
+                
+        //     foreach ($this->clients as $client) {
+        //         array_push($usersOnline, $this->clients[$client]['userOnlineEmail']);
+                
+        //     }
+        //     foreach ($this->clients as $client) {
+     
+                    
+        //         $getUsersRes = $this->user->getUsers($this->clients[$client]['userOnlineEmail']);
+        //         if ($getUsersRes && $getUsersRes["success"] && $getUsersRes["users"]) {
+        //             $users =  $getUsersRes["users"];
+        //             $client->send(json_encode([
+        //                 "message" => "Success get users",
+        //                 "users" => $users,
+        //                 "usersOnline" => $usersOnline,
+        //             ]));
+                    
+        //         }
+                
+        //     }
+
+        // }else{
+        //     echo "userEmail isnt setted";
+        //     return;
+        // }
+
     }
     
 
     public function onClose(ConnectionInterface $conn) {
         $this->clients->detach($conn);
+        $usersOnline = [];
+        
+        foreach ($this->clients as $client) {
+            array_push($usersOnline, $this->clients[$client]['userOnlineEmail']);
+            
+        }
+        foreach ($this->clients as $client) {
+ 
+                
+            $client->send(json_encode([
+                "message" => "Update online users list",
+                "usersOnline" => $usersOnline,
+            ]));
+                
+            
+            
+        }
+
         echo "Connection {$conn->resourceId} has disconnected\n";
     }
 
