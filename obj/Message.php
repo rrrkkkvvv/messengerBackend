@@ -15,7 +15,30 @@ class Message {
         $this->conn = $db;
     }
     
- 
+    function getMessageById( $conversation_id, $messageId){
+        $sql = "SELECT messages.message_text AS `message_text`, messages.message_image AS `message_image`, messages.edited_at AS `edited_at`,  users.name  AS `sender_name`, users.id  AS `sender_id`, messages.sent_at AS `sent_at`, messages.id AS `message_id` FROM ". $this->table_name." JOIN users ON messages.sender_id = users.id WHERE messages.conversation_id = :conversation_id AND messages.id = :messageId ORDER BY messages.sent_at ASC";
+        if ($stmt = $this->conn->prepare($sql)) {
+
+            $stmt->bindParam(':conversation_id', $conversation_id, PDO::PARAM_INT);
+            $stmt->bindParam(':messageId', $messageId, PDO::PARAM_INT);
+
+            $stmt->execute();
+
+            
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if($rows){
+                return ["success" => true, "messageById"=>$rows[0]];
+            }else{
+                return ["success" => false, ];
+            }
+
+
+         
+        } else {
+            echo json_encode(["success" => false, "message" => "Error preparing request: " . $this->conn->error]);
+            return false;
+        }
+    }
     function createMessage($message_text, $message_image, $sender_id, $conversation_id) {
 
 

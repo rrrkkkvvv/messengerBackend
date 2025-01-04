@@ -105,11 +105,13 @@ class Conversation_service implements MessageComponentInterface {
           
 
                     if ($editMessageResult['success']) {
-                        $messagesFromConv = $this->message->getConversationMessages($senderConversationId);
-                        if($messagesFromConv){
+                        $editedMessageResult = $this->message->getMessageById($senderConversationId, $message["message_id"]);
+
+                        if($editedMessageResult["success"]){
+                            $client->send(json_encode(["message"=>"Edited message","edited_message"=>$editedMessageResult["messageById"]]));
                             
-                            $client->send(json_encode(["message"=>"Update","messages"=>$messagesFromConv]));
                         }
+
                     }
                 }
             }
@@ -126,11 +128,8 @@ class Conversation_service implements MessageComponentInterface {
           
 
                     if ($deleteMessageResult['success']) {
-                        $messagesFromConv = $this->message->getConversationMessages($senderConversationId);
-                        if($messagesFromConv){
-                            
-                            $client->send(json_encode(["message"=>"Update","messages"=>$messagesFromConv]));
-                        }
+                        $client->send(json_encode(["message"=>"Deleted message","deleted_message_id"=>$messageId]));
+         
                     }
                 }
             }
@@ -151,8 +150,9 @@ class Conversation_service implements MessageComponentInterface {
                     if ($createMessResult['success']) {
                         $messagesFromConv = $this->message->getConversationMessages($senderConversationId);
                         if($messagesFromConv){
+                            // $client->send(json_encode(["message"=>"Sended message","messages"=>$messagesFromConv]));
                             
-                            $client->send(json_encode(["message"=>"Update","messages"=>$messagesFromConv]));
+                            $client->send(json_encode(["message"=>"Sended message","sended_message"=>end($messagesFromConv)]));
                         }
                     }
                 }
