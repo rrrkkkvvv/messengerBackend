@@ -99,40 +99,61 @@ class Conversation_service implements MessageComponentInterface {
             $senderConversationId = $clientData['conversationId'];
 
             $editMessageResult = $this->message->editMessage($message, $senderConversationId);
-            foreach ($this->clients as $client) {
+            if ($editMessageResult['success']) {
 
-                if ($this->clients[$client]['conversationId'] == $senderConversationId) {
-          
+                foreach ($this->clients as $client) {
 
-                    if ($editMessageResult['success']) {
-                        $editedMessageResult = $this->message->getMessageById($senderConversationId, $message["message_id"]);
+                    if ($this->clients[$client]['conversationId'] == $senderConversationId) {
+            
 
-                        if($editedMessageResult["success"]){
-                            $client->send(json_encode(["message"=>"Edited message","edited_message"=>$editedMessageResult["messageById"]]));
-                            
+                            $editedMessageResult = $this->message->getMessageById($senderConversationId, $message["message_id"]);
+
+                            if($editedMessageResult["success"]){
+                                $client->send(json_encode(["message"=>"Edited message","edited_message"=>$editedMessageResult["messageById"]])); 
+                            }
+
                         }
+                    }
+            }
+        }else if(isset($data["messageId"]) && isset($data["method"])){
+            if($data["method"] ==="delete"){
+                // delete message
+                $messageId = $data["messageId"];
+                $senderConversationId = $clientData['conversationId'];
 
+                $deleteMessageResult = $this->message->deleteMessage($messageId, $senderConversationId);
+            
+                if ($deleteMessageResult['success']) {
+                    foreach ($this->clients as $client) {
+
+                        if ($this->clients[$client]['conversationId'] == $senderConversationId) {
+                            $client->send(json_encode(["message"=>"Deleted message","deleted_message_id"=>$messageId]));
+                        }
                     }
                 }
-            }
-        }else if(isset($data["messageId"])){
-            // delete message
-            $messageId = $data["messageId"];
-            $senderConversationId = $clientData['conversationId'];
+            }else if($data["method"] ==="set_seen"){
+                // set message seen
+                $messageId = $data["messageId"];
+                $senderConversationId = $clientData['conversationId'];
 
-            $deleteMessageResult = $this->message->deleteMessage($messageId, $senderConversationId);
-           
-            foreach ($this->clients as $client) {
+                $setMessageSeenResult = $this->message->setMessageSeen($messageId, $senderConversationId);
+                if($setMessageSeenResult["success"]){
+                    $editedMessageResult = $this->message->getMessageById($senderConversationId, $messageId);
 
-                if ($this->clients[$client]['conversationId'] == $senderConversationId) {
-          
-
-                    if ($deleteMessageResult['success']) {
-                        $client->send(json_encode(["message"=>"Deleted message","deleted_message_id"=>$messageId]));
+                    if ($editedMessageResult['success']) {
+                        foreach ($this->clients as $client) {
+    
+                            if ($this->clients[$client]['conversationId'] == $senderConversationId) {
+                                $client->send(json_encode(["message"=>"Edited message","edited_message"=>$editedMessageResult["messageById"]]));
+                
+                            }
+                        }
+                    }
+                }
          
-                    }
-                }
+
             }
+
         }else if(isset($data["message"])){
             // send message
             $senderConversationId = $clientData['conversationId'];
