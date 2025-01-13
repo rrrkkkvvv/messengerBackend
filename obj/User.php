@@ -165,7 +165,7 @@ class User {
             if($rows){
                 return ["success" => true, "users"=>$rows];
             }else{
-                return ["success" => false, []];
+                return ["success" => true, []];
             }
 
         }else{
@@ -218,7 +218,25 @@ class User {
             }
         }
     }
+    function deleteUser($id){
 
+        if(!$id) return ["success" => false, "message"=>"id wasnt setted"];
+        $sql = "DELETE  FROM " . $this->table_name . " WHERE id = :id";
+       
+        if ($stmt = $this->conn->prepare($sql)) {
+         
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+           
+
+ 
+       
+            if($stmt->execute()){
+                return ["success" => true];
+            }else {
+                return ["success" => false, "message"=>"Cannot delete user"];
+            }
+        }
+    }
 
 }
 $user = new User($db);

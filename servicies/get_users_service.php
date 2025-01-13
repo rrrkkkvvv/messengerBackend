@@ -78,54 +78,68 @@ class Users_service implements MessageComponentInterface {
             }
                 
         }else{
+            
             echo  "userEmail isnt set";
          }
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
-        // $data = json_decode($msg, true);
+        $data = json_decode($msg, true);
 
-        // if (!isset($data['token'])) {
-        //     $from->send(json_encode(['message' => 'Unauthorized']));
-        //     $from->close();
-        //     return;
-        // }
-        // $isVerified = $this->token->verifyToken($data['token']);
-        // if (!$isVerified) {
-        //     $from->send(json_encode(['message' => 'Unauthorized']));
-        //     $from->close();
-        //     return;
-        // }
-        // // Making user with this email offline and send updated users lists for each others
-        // if (isset($data['userEmail'])) {
-        //     $userEmail = $data['userEmail'];
-        //     $usersOnline = [];
+        if (!isset($data['token'])) {
+            $from->send(json_encode(['message' => 'Unauthorized']));
+            $from->close();
+            return;
+        }
+        $isVerified = $this->token->verifyToken($data['token']);
+        if (!$isVerified) {
+            $from->send(json_encode(['message' => 'Unauthorized']));
+            $from->close();
+            return;
+        }
+
+        if (isset($data['method'])) {
+            $method = $data['method'];
+            if($method == "deleteUser" &&  $data['userId']){
+                $userId =  $data['userId']['userId'];
+                $deleteUserRes = $this->user->deleteUser($userId);
+ 
                 
-        //     foreach ($this->clients as $client) {
-        //         array_push($usersOnline, $this->clients[$client]['userOnlineEmail']);
-                
-        //     }
-        //     foreach ($this->clients as $client) {
-     
+                if($deleteUserRes["success"]){
                     
-        //         $getUsersRes = $this->user->getUsers($this->clients[$client]['userOnlineEmail']);
-        //         if ($getUsersRes && $getUsersRes["success"] && $getUsersRes["users"]) {
-        //             $users =  $getUsersRes["users"];
-        //             $client->send(json_encode([
-        //                 "message" => "Success get users",
-        //                 "users" => $users,
-        //                 "usersOnline" => $usersOnline,
-        //             ]));
+
+                    $usersOnline = [];    
+                    foreach ($this->clients as $client) {
+                        array_push($usersOnline, $this->clients[$client]['userOnlineEmail']);
+                    }
+                    foreach ($this->clients as $client) {
+
                     
-        //         }
-                
-        //     }
+                        $getUsersRes = $this->user->getUsers($this->clients[$client]['userOnlineEmail']);
+                        print_r($getUsersRes);
+                        if ($getUsersRes && $getUsersRes["success"]) {
+                            if( $getUsersRes["users"]){
 
-        // }else{
-        //     echo "userEmail isnt setted";
-        //     return;
-        // }
+                                $users =  $getUsersRes["users"];
+                            }else{
+                                $users = [];
+                            }
+                            $client->send(json_encode([
+                                "message" => "Success get users",
+                                "users" => $users,
+                                "usersOnline" => $usersOnline,
+                            ]));
+                            
+                        }
+                        
+                    }
+                    
+                }else{
+                    echo json_encode([ "message" => "Deleting went wrong"]);
+                }
 
+            }
+        }
     }
     
 

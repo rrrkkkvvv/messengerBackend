@@ -171,8 +171,6 @@ class Conversation_service implements MessageComponentInterface {
                     if ($createMessResult['success']) {
                         $messagesFromConv = $this->message->getConversationMessages($senderConversationId);
                         if($messagesFromConv){
-                            // $client->send(json_encode(["message"=>"Sended message","messages"=>$messagesFromConv]));
-                            
                             $client->send(json_encode(["message"=>"Sended message","sended_message"=>end($messagesFromConv)]));
                         }
                     }
