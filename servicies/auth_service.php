@@ -19,59 +19,7 @@ if ($method == "OPTIONS") {
 
 
 
-if($method == "GET"){
-    if(isset($_GET['email']) ){
 
-
-
-        $headers = apache_request_headers();
-
-
-        if (isset($headers['authorization'])) {
-            $authHeader = $headers['authorization'];
-            
-            if (strpos($authHeader, 'Bearer ') === 0) {
-                $jwt = substr($authHeader, 7);
-            
-                $isVerify = $token->verifyToken($jwt);
-
-                if (!$isVerify) {
-                    http_response_code(200);  
-                    echo json_encode(["message" => "Unauthorized" ]);
-                    exit();
-                }
-            }
-        }else{
-            http_response_code(200);  
-            echo json_encode(["message" => "Unauthorized" ]);
-            exit();
-        }
-
-
-
-        $getUsersRes = $user->getUsers($_GET['email']);
-
-        $users_arr = array();
-        $users_arr["message"] = "success";
-        $users_arr["records"] = array();
-       
-
-        if($getUsersRes["success"]){    
-            $users_arr["records"] =$getUsersRes["users"];
-        
-            http_response_code(200);
-            echo json_encode($users_arr);
-        }
-
-
-
-              
-    }else{
-        http_response_code(400);
-        echo json_encode(array("message" => "Cannot getUsers, there is not enough data."));
-
-    }
-}
 else if($method == "POST"){
     $input = json_decode(file_get_contents("php://input"));
     
@@ -198,55 +146,6 @@ else if($method == "POST"){
                 } else {
                     http_response_code(400);
                     echo json_encode(array("message" => "Cannot create a user, there is not enough data."));
-                }
-        
-    
-            }else if( $input->method == "editUser"){
-                
-                $headers = apache_request_headers();
-    
-    
-                if (isset($headers['authorization'])) {
-                    $authHeader = $headers['authorization'];
-                    
-                    if (strpos($authHeader, 'Bearer ') === 0) {
-                        $jwt = substr($authHeader, 7);
-                    
-                        $isVerify = $token->verifyToken($jwt);
-    
-                        if (!$isVerify) {
-                            http_response_code(200);  
-                            echo json_encode(["message" => "Unauthorized" ]);
-                            exit();
-                        }
-                    }
-                }else{
-                    http_response_code(200);  
-                    echo json_encode(["message" => "Unauthorized" ]);
-                    exit();
-                }
-                if (!empty($params->profile) && (property_exists($params->profile, 'picture') || !empty($params->profile->name))) {
-    
-        
-                    $id = $params->profile->id;
-                    $name = isset($params->profile->name) ? $params->profile->name : false;
-                    $picture = property_exists($params->profile, 'picture') ? $params->profile->picture : false;
-    
-    
-                    $editUserResult = $user->editUser($name, $picture, $id);
-    
-    
-                    
-                    if ($editUserResult["success"] ) {
-                        http_response_code(201);
-                        echo json_encode(array("message" => "User was edited","user"=> $editUserResult["user"]));
-                    } else {
-                        http_response_code(503);
-                        echo json_encode(array("message" =>  $editUserResult["message"]));
-                    }
-                } else {
-                    http_response_code(400);
-                    echo json_encode(array("message" => "Cannot edit user, there is not enough data."));
                 }
         
     

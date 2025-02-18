@@ -174,50 +174,95 @@ class User {
     
     }
 
+    function editUser($updated_profile) {
+        
+        $sql = "UPDATE " . $this->table_name . " SET  name = :name, picture = :picture WHERE id = :id";
 
-    function editUser($name, $picture, $id){
-
-        $sql = "";
-        if($name  && ($picture || $picture === null)){
-            $sql = "UPDATE " . $this->table_name . " SET  name = :name, picture = :picture WHERE id = :id";
-        }else if($name && !$picture){
-            $sql = "UPDATE " . $this->table_name . " SET  name = :name WHERE id = :id";
-        }else if(!$name && ($picture || $picture === null)){
-            $sql = "UPDATE " . $this->table_name . " SET  picture = :picture WHERE id = :id";
-        }else{
-            return ["success" => false, "message"=>"There is not enough data for edit user"];
+        $updateFields = [];
+        $params = [":id" => $updated_profile["id"]];
+        
+        if (!empty($updated_profile["name"])) {
+            $updateFields[] = "name = :name";
+            $params[":name"] = $updated_profile["name"];
         }
-     
+        
+        if (!empty($updated_profile["picture"])) {
+            $updateFields[] = "picture = :picture";
+            $params[":picture"] = $updated_profile["picture"];
+        }
+        
+
+        if (empty($updateFields)) {
+            echo json_encode(["message" => "Nothing to update"]);
+            exit;
+        }
+        
+
+        $sql = "UPDATE ". $this->table_name ." SET " . implode(", ", $updateFields) . " WHERE id = :id";
+        
 
         if ($stmt = $this->conn->prepare($sql)) {
-            if($name){
-                $stmt->bindParam(':name', $name, PDO::PARAM_STR);
+
+
+
+
+            if ($stmt->execute($params)) {
+ 
+                    
+                return ["success" => true];
+           
+            } else {
+                echo "Error execution request: " . $this->conn->error;
+                return ["success" => false,"message"=> "Error execution request"];
             }
-
-            if($picture || $picture === null){
-                $stmt->bindParam(':picture', $picture, PDO::PARAM_STR);
-            }
-            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-
-
-            $exec = $stmt->execute();
-            if ($exec) {
-                
-                $currUser = $this->getUserById($id);
-                unset($currUser["user"]["password"]);
-
-                if($currUser["success"]){
-
-                    return ["success" => true,"user"=> $currUser["user"]];
-                }else{
-                    return ["success" => false, "message"=>"Cannot edit user"];
-                }
-
-            }else {
-                return ["success" => false, "message"=>"Cannot edit user"];
-            }
+        } else {
+            echo "Error preparing request: " . $this->conn->error;
+            return ["success" => false,"message"=> "Error preparing request"];
         }
     }
+    // function editUser($name, $picture, $id){
+
+    //     $sql = "";
+    //     if($name  && ($picture || $picture === null)){
+    //         $sql = "UPDATE " . $this->table_name . " SET  name = :name, picture = :picture WHERE id = :id";
+    //     }else if($name && !$picture){
+    //         $sql = "UPDATE " . $this->table_name . " SET  name = :name WHERE id = :id";
+    //     }else if(!$name && ($picture || $picture === null)){
+    //         $sql = "UPDATE " . $this->table_name . " SET  picture = :picture WHERE id = :id";
+    //     }else{
+    //         return ["success" => false, "message"=>"There is not enough data for edit user"];
+    //     }
+     
+
+    //     if ($stmt = $this->conn->prepare($sql)) {
+    //         if($name){
+    //             $stmt->bindParam(':name', $name, PDO::PARAM_STR);
+    //         }
+
+    //         if($picture || $picture === null){
+    //             $stmt->bindParam(':picture', $picture, PDO::PARAM_STR);
+    //         }
+    //         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+
+
+    //         $exec = $stmt->execute();
+    //         if ($exec) {
+                
+    //             $currUser = $this->getUserById($id);
+    //             unset($currUser["user"]["password"]);
+
+    //             if($currUser["success"]){
+
+    //                 return ["success" => true,"user"=> $currUser["user"]];
+    //             }else{
+    //                 return ["success" => false, "message"=>"Cannot edit user"];
+    //             }
+
+    //         }else {
+    //             return ["success" => false, "message"=>"Cannot edit user"];
+    //         }
+    //     }
+    // }
     function deleteUser($id){
 
         if(!$id) return ["success" => false, "message"=>"id wasnt setted"];

@@ -101,7 +101,7 @@ class Users_service implements MessageComponentInterface {
         if (isset($data['method'])) {
             $method = $data['method'];
             if($method == "deleteUser" &&  $data['userId']){
-                $userId =  $data['userId']['userId'];
+                $userId =  $data['userId'];
                 $deleteUserRes = $this->user->deleteUser($userId);
  
                 
@@ -116,7 +116,7 @@ class Users_service implements MessageComponentInterface {
 
                     
                         $getUsersRes = $this->user->getUsers($this->clients[$client]['userOnlineEmail']);
-                        print_r($getUsersRes);
+
                         if ($getUsersRes && $getUsersRes["success"]) {
                             if( $getUsersRes["users"]){
 
@@ -138,6 +138,39 @@ class Users_service implements MessageComponentInterface {
                     echo json_encode([ "message" => "Deleting went wrong"]);
                 }
 
+            }else if($method == "editUser" &&  $data['updatedProfile']["id"]){
+                $updatedProfile = $data['updatedProfile'];
+
+                $editProfileResult = $this->user->editUser($updatedProfile);
+                if ($editProfileResult['success']) {
+                    $usersOnline = [];    
+                    foreach ($this->clients as $client) {
+                        array_push($usersOnline, $this->clients[$client]['userOnlineEmail']);
+                    }
+                    foreach ($this->clients as $client) {
+
+                    
+                        $getUsersRes = $this->user->getUsers($this->clients[$client]['userOnlineEmail']);
+
+                        if ($getUsersRes && $getUsersRes["success"]) {
+                            if( $getUsersRes["users"]){
+
+                                $users =  $getUsersRes["users"];
+                            }else{
+                                $users = [];
+                            }
+                            $client->send(json_encode([
+                                "message" => "Success get users",
+                                "users" => $users,
+                                "usersOnline" => $usersOnline,
+                            ]));
+                            
+                        }
+                        
+                    }
+                }else{
+                    echo json_encode([ "message" => "Updating went wrong"]);
+                }
             }
         }
     }
