@@ -13,8 +13,6 @@ const {
   refresh,
   googleAuth,
 } = require("../controllers/authControllers");
-const { OAuth2Client } = require("google-auth-library");
-const { googleClientId, googleClientSecret } = require("../config");
 
 const authRouter = express.Router();
 
