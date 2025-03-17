@@ -2,7 +2,7 @@ const { Schema, model } = require("mongoose");
 const Joi = require("joi");
 const mongoose = require("mongoose");
 
-const handleMongooseError = require("../helpers/handleMongooseError");
+const handleMongooseError = require("../helpers/handleMongooseError.js");
 
 const conversationSchema = new Schema(
   {

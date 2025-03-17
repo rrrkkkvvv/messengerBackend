@@ -1,7 +1,6 @@
-newYsersWsControllers:
-const { Conversation } = require("../models/Conversation");
-const { Message } = require("../models/Message");
-const { User } = require("../models/User");
+const { Conversation } = require("../models/Conversation.js");
+const { Message } = require("../models/Message.js");
+const { User } = require("../models/User.js");
 
 const getUserById = async (id) => {
   return await User.findById(id);

@@ -4,15 +4,15 @@ const {
   signInSchema,
   googleAuthSchema,
 } = require("../models/User");
-const validateBody = require("../helpers/validateBody");
-const authenticate = require("../middlewares/authenticate");
+const validateBody = require("../helpers/validateBody.js");
+const authenticate = require("../middlewares/authenticate.js");
 const {
   signIn,
   logout,
   signUp,
   refresh,
   googleAuth,
-} = require("../controllers/authControllers");
+} = require("../controllers/authControllers.js");
 
 const authRouter = express.Router();
 

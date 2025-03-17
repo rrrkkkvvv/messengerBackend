@@ -1,6 +1,6 @@
 const { Schema, model } = require("mongoose");
 const Joi = require("joi");
-const handleMongooseError = require("../helpers/handleMongooseError");
+const handleMongooseError = require("../helpers/handleMongooseError.js");
 const emailRegexp = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
 const userSchema = new Schema(

@@ -1,9 +1,9 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { jwtSecret, googleClientId } = require("../config");
-const HttpError = require("../helpers/HttpError");
-const controllersWrapper = require("../helpers/controllersWrapper");
-const { User } = require("../models/User");
+const { jwtSecret, googleClientId } = require("../config.js");
+const HttpError = require("../helpers/HttpError.js");
+const controllersWrapper = require("../helpers/controllersWrapper.js");
+const { User } = require("../models/User.js");
 const { OAuth2Client } = require("google-auth-library");
 
 const signUp = async (req, res) => {

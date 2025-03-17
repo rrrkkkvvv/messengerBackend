@@ -5,7 +5,7 @@ const {
   deleteConversation,
   deleteMessage,
   setSeenMessage,
-} = require("../controllers/conversationsWsController");
+} = require("../controllers/conversationsWsController.js");
 
 const setupConversationsWebSocket = async (socket) => {
   const { _id } = socket.user;

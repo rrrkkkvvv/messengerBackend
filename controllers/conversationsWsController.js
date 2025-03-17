@@ -1,5 +1,5 @@
-const { Conversation } = require("../models/Conversation");
-const { Message } = require("../models/Message");
+const { Conversation } = require("../models/Conversation.js");
+const { Message } = require("../models/Message.js");
 
 const getConversation = async (conversationId) => {
   const result = await Conversation.aggregate([

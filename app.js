@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const authRouter = require("./routes/authRouter");
+const authRouter = require("./routes/authRouter.js");
 
 const app = express();
 app.use(cors({ origin: "*" }));
