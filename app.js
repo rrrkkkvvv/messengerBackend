@@ -3,7 +3,7 @@ const cors = require("cors");
 const authRouter = require("./routes/authRouter.js");
 
 const app = express();
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
 app.use("/auth", authRouter);
