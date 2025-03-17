@@ -40,7 +40,8 @@ const getOtherUsers = async (userId) => {
         let seenStatus = false;
         if (
           lastMessage[0].senderId.toString() === userId &&
-          lastMessage[0].seenIds[0].toString() === otherUserId.toString()
+          lastMessage[0].seenIds[0] &&
+          lastMessage[0].seenIds[0] === otherUserId.toString()
         ) {
           seenStatus = true;
         }
