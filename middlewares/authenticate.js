@@ -5,7 +5,7 @@ const HttpError = require("../helpers/HttpError.js");
 
 const authenticate = async (req, res, next) => {
   const { authorization } = req.headers;
-  if (!authorization) next(HttpError(401));
+  if (!authorization) return next(HttpError(401));
 
   const [bearer, token] = authorization.split(" ");
   if (bearer !== "Bearer") {
