@@ -11,7 +11,7 @@ const dotenvVars = {
 };
 const corsConfig = {
   origin: [
-    "https://messenger-frontend-5w6t56640-romans-projects-c17effd1.vercel.app/auth",
+    "https://messenger-frontend-swart.vercel.app",
     "http://localhost:5173",
   ],
 };
