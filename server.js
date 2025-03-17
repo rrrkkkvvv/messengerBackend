@@ -9,7 +9,11 @@ const authenticateWebSocket = require("./middlewares/authenticateWebSocket.js");
 const setupConversationsWebSocket = require("./sockets/conversationSocket.js");
 
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
 
 const usersNamespace = io.of("/users");
 const conversationsNamespace = io.of("/conversations");
