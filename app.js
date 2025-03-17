@@ -3,7 +3,14 @@ const cors = require("cors");
 const authRouter = require("./routes/authRouter.js");
 
 const app = express();
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://messengerbackend-3qj2.onrender.com",
+    ],
+  })
+);
 app.use(express.json());
 
 app.use("/auth", authRouter);
