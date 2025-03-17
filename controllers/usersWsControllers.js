@@ -1,3 +1,4 @@
+newYsersWsControllers:
 const { Conversation } = require("../models/Conversation");
 const { Message } = require("../models/Message");
 const { User } = require("../models/User");
@@ -19,7 +20,9 @@ const getOtherUsers = async (userId) => {
       conversationId: conversation._id,
     })
       .sort({ sentAt: -1 })
-      .select("_id messageText messageImage sentAt senderId conversationId")
+      .select(
+        "_id messageText messageImage sentAt senderId conversationId seenIds"
+      )
       .lean();
 
     if (lastMessage[0]) {
@@ -28,7 +31,25 @@ const getOtherUsers = async (userId) => {
       );
 
       if (otherUserId) {
-        lastMessages[otherUserId] = lastMessage[0];
+        const unreadMessagesCount = await Message.find({
+          conversationId: conversation._id,
+          $ne: {
+            senderId: userId,
+            seenIds: { $all: [userId] },
+          },
+        }).length;
+        let seenStatus = false;
+        if (
+          lastMessage[0].senderId.toString() === userId &&
+          lastMessage[0].seenIds[0].toString() === otherUserId.toString()
+        ) {
+          seenStatus = true;
+        }
+        lastMessages[otherUserId] = {
+          ...lastMessage[0],
+          unreadMessagesCount,
+          seenStatus,
+        };
       }
     }
   }
