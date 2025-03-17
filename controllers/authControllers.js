@@ -1,11 +1,11 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { jwtSecret, googleClientId } = require("../config.js");
+const { dotenvVars } = require("../config.js");
 const HttpError = require("../helpers/HttpError.js");
 const controllersWrapper = require("../helpers/controllersWrapper.js");
 const { User } = require("../models/User.js");
 const { OAuth2Client } = require("google-auth-library");
-
+const { jwtSecret, googleClientId } = dotenvVars;
 const signUp = async (req, res) => {
   const { email, password } = req.body;
 

@@ -1,16 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const authRouter = require("./routes/authRouter.js");
-
+const { corsConfig } = require("./config.js");
 const app = express();
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://messengerbackend-3qj2.onrender.com",
-    ],
-  })
-);
+app.use(cors(corsConfig));
 app.use(express.json());
 
 app.use("/auth", authRouter);

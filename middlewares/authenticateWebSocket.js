@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { getUserById } = require("../controllers/usersWsControllers.js");
-const { jwtSecret } = require("../config.js");
+const { dotenvVars } = require("../config.js");
+const { jwtSecret } = dotenvVars;
 
 const authenticateWebSocket = async (socket, next) => {
   const token = socket.handshake.auth.token;
