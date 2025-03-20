@@ -20,7 +20,9 @@ const conversationsNamespace = io.of("/conversations");
 
 conversationsNamespace.use(authenticateWebSocket);
 usersNamespace.use(authenticateWebSocket);
-conversationsNamespace.on("connection", setupConversationsWebSocket);
+conversationsNamespace.on("connection", (socket) =>
+  setupConversationsWebSocket(socket, io)
+);
 usersNamespace.on("connection", setupUsersWebSocket);
 
 mongoose

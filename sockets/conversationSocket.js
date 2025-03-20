@@ -7,7 +7,7 @@ const {
   setSeenMessage,
 } = require("../controllers/conversationsWsController.js");
 
-const setupConversationsWebSocket = async (socket) => {
+const setupConversationsWebSocket = async (socket, io) => {
   const { _id } = socket.user;
 
   socket.on(
@@ -33,7 +33,9 @@ const setupConversationsWebSocket = async (socket) => {
     socket
       .to(`conversation_${conversationId}`)
       .emit("newMessage", sendedMessage);
+    io.of("/users").emit("lastMessageUpdated", sendedMessage);
   });
+
   socket.on("updateMessage", async ({ conversationId, message }) => {
     const updatedMessage = await updateMessage(message);
     socket.emit("messageUpdated", updatedMessage);

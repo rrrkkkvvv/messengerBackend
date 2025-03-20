@@ -22,6 +22,11 @@ const setupUsersWebSocket = async (socket) => {
 
       socket.broadcast.emit("usersOnlineUpdate", Array.from(usersOnline));
     });
+    socket.on("updateLastMessage", (lastMessage) => {
+      console.log("updateLastMessage");
+
+      socket.broadcast.emit("lastMessageUpdated", lastMessage);
+    });
 
     socket.on("deleteUser", async () => {
       await deleteUserById(user.id);
