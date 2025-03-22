@@ -5,6 +5,9 @@ const {
   deleteConversation,
   deleteMessage,
   setSeenMessage,
+  getConversationMembersIds,
+  sendLastMessageUpdate,
+  checkIsMessageLast,
 } = require("../controllers/conversationsWsController.js");
 
 const setupConversationsWebSocket = async (socket, io) => {
@@ -15,10 +18,25 @@ const setupConversationsWebSocket = async (socket, io) => {
     async ({ userId, isGroup = false, name = "" }) => {
       if (isGroup) {
       } else {
-        const conversation = await getOrCreateConversation([userId, _id]);
-        socket.join(`conversation_${conversation._id}`);
+        const { status, conversation } = await getOrCreateConversation([
+          userId,
+          _id,
+        ]);
 
+        socket.join(`conversation_${conversation._id}`);
         socket.emit("conversationData", conversation);
+
+        if (status == "created") {
+          conversation.userIds.forEach((_id) => {
+            const otherUserId = conversation.userIds.find(
+              (otherId) => otherId !== _id
+            );
+            io.of("/users").to(`user_${_id}`).emit("newConversationWithUser", {
+              userId: otherUserId,
+              conversationId: conversation._id,
+            });
+          });
+        }
       }
     }
   );
@@ -33,17 +51,30 @@ const setupConversationsWebSocket = async (socket, io) => {
     socket
       .to(`conversation_${conversationId}`)
       .emit("newMessage", sendedMessage);
-    io.of("/users").emit("lastMessageUpdated", sendedMessage);
+    await sendLastMessageUpdate(conversationId, io, sendedMessage);
   });
-
   socket.on("updateMessage", async ({ conversationId, message }) => {
     const updatedMessage = await updateMessage(message);
+    const check = await checkIsMessageLast(message._id, conversationId);
+    if (check) {
+      await sendLastMessageUpdate(conversationId, io, updatedMessage);
+    }
+
     socket.emit("messageUpdated", updatedMessage);
     socket
       .to(`conversation_${conversationId}`)
       .emit("messageUpdated", updatedMessage);
   });
   socket.on("deleteMessage", async ({ conversationId, messageId }) => {
+    // TODO: CHECK IF ITS LAST MESSAGE BY QUEUE BUT NOT IN CONV. THEN RETURN MESSAGE SENDED BEFORE IT, ELSE RESET
+    if (await checkIsMessageLast(messageId, conversationId)) {
+      await sendLastMessageUpdate(
+        conversationId,
+        io,
+        { conversationId },
+        "lastMessageReseted"
+      );
+    }
     await deleteMessage(messageId);
     socket.emit("messageDeleted", messageId);
 
@@ -53,6 +84,13 @@ const setupConversationsWebSocket = async (socket, io) => {
   });
   socket.on("setSeenMessage", async ({ conversationId, userId, messageId }) => {
     const updatedMessage = await setSeenMessage(userId, messageId);
+    if (await checkIsMessageLast(messageId, conversationId)) {
+      await sendLastMessageUpdate(conversationId, io, {
+        conversationId,
+        seenStatus: true,
+      });
+    }
+
     socket.emit("messageUpdated", updatedMessage);
 
     socket
@@ -60,6 +98,7 @@ const setupConversationsWebSocket = async (socket, io) => {
       .emit("messageUpdated", updatedMessage);
   });
   socket.on("deleteConversation", async ({ conversationId }) => {
+    await sendLastMessageUpdate(conversationId, io, { conversationId });
     await deleteConversation(conversationId);
     socket.emit("conversationDeleted", conversationId);
     socket

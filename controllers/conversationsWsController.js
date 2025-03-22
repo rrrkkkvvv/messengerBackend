@@ -31,13 +31,15 @@ const getOrCreateConversation = async (membersArray) => {
   if (conversation) {
     const res = await getConversation(conversation._id);
 
-    return res;
+    return { status: "exists", conversation: res };
   } else {
     const newConversation = await Conversation.create({
       isGroup: false,
       userIds: membersArray,
     });
-    return await getConversation(newConversation._id);
+    const res = await getConversation(newConversation._id);
+
+    return { status: "created", conversation: res };
   }
 };
 const sendMessage = async ({ conversationId, message, userId }) => {
@@ -53,6 +55,10 @@ const sendMessage = async ({ conversationId, message, userId }) => {
 const deleteMessage = async (messageId) => {
   await Message.findByIdAndDelete(messageId);
 };
+const getConversationMembersIds = async (conversationId) => {
+  const conversation = await Conversation.findById(conversationId);
+  return conversation.userIds;
+};
 const updateMessage = async (message) => {
   const updatedMessage = await Message.findByIdAndUpdate(
     message._id,
@@ -62,6 +68,19 @@ const updateMessage = async (message) => {
     }
   );
   return updatedMessage;
+};
+const checkIsMessageLast = async (_id, conversationId) => {
+  const lastMessage = await Message.find({ conversationId })
+    .sort({
+      sentAt: -1,
+    })
+    .limit(1)
+    .lean();
+
+  if (lastMessage[0]._id.toString() === _id.toString()) {
+    return true;
+  }
+  return false;
 };
 const setSeenMessage = async (userId, messageId) => {
   const updatedMessage = await Message.findByIdAndUpdate(
@@ -78,6 +97,18 @@ const setSeenMessage = async (userId, messageId) => {
 const deleteConversation = async (conversationId) => {
   await Conversation.findByIdAndDelete(conversationId);
 };
+const sendLastMessageUpdate = async (
+  conversationId,
+  io,
+  sendData,
+  title = "lastMessageUpdated"
+) => {
+  const membersIds = await getConversationMembersIds(conversationId);
+
+  membersIds.forEach((_id) => {
+    io.of("/users").to(`user_${_id}`).emit("lastMessageUpdated", sendData);
+  });
+};
 module.exports = {
   sendMessage,
   getOrCreateConversation,
@@ -85,4 +116,6 @@ module.exports = {
   updateMessage,
   deleteConversation,
   setSeenMessage,
+  sendLastMessageUpdate,
+  checkIsMessageLast,
 };

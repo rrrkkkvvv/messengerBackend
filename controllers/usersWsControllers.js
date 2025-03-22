@@ -7,11 +7,11 @@ const getUserById = async (id) => {
 };
 
 const getOtherUsers = async (userId) => {
-  const otherUsers = await User.find({ _id: { $ne: userId } });
+  const otherUsers = await User.find({ _id: { $ne: userId } }).lean();
 
   const conversations = await Conversation.find({
     userIds: { $all: [userId] },
-  });
+  }).lean();
 
   const lastMessages = {};
   for (const conversation of conversations) {
@@ -28,26 +28,14 @@ const getOtherUsers = async (userId) => {
       const otherUserId = conversation.userIds.find(
         (id) => id.toString() !== userId
       );
-
       if (otherUserId) {
-        const unreadMessagesCount = await Message.find({
-          conversationId: conversation._id,
-          $ne: {
-            senderId: userId,
-            seenIds: { $all: [userId] },
-          },
-        }).length;
         let seenStatus = false;
-        if (
-          lastMessage[0].senderId.toString() === userId &&
-          lastMessage[0].seenIds[0] &&
-          lastMessage[0].seenIds[0] === otherUserId.toString()
-        ) {
+
+        if (lastMessage[0].seenIds.length) {
           seenStatus = true;
         }
         lastMessages[otherUserId] = {
           ...lastMessage[0],
-          unreadMessagesCount,
           seenStatus,
         };
       }
