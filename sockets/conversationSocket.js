@@ -8,6 +8,8 @@ const {
   getConversationMembersIds,
   sendLastMessageUpdate,
   checkIsMessageLast,
+  getMessageBeforeLast,
+  sendTypingStatusUpdate,
 } = require("../controllers/conversationsWsController.js");
 
 const setupConversationsWebSocket = async (socket, io) => {
@@ -40,7 +42,12 @@ const setupConversationsWebSocket = async (socket, io) => {
       }
     }
   );
-
+  socket.on("userTyping", async ({ conversationId }) => {
+    await sendTypingStatusUpdate(io, conversationId, _id, true);
+  });
+  socket.on("userStopTyping", async ({ conversationId }) => {
+    await sendTypingStatusUpdate(io, conversationId, _id, false);
+  });
   socket.on("sendMessage", async ({ conversationId, message }) => {
     const sendedMessage = await sendMessage({
       conversationId,
@@ -66,14 +73,18 @@ const setupConversationsWebSocket = async (socket, io) => {
       .emit("messageUpdated", updatedMessage);
   });
   socket.on("deleteMessage", async ({ conversationId, messageId }) => {
-    // TODO: CHECK IF ITS LAST MESSAGE BY QUEUE BUT NOT IN CONV. THEN RETURN MESSAGE SENDED BEFORE IT, ELSE RESET
     if (await checkIsMessageLast(messageId, conversationId)) {
-      await sendLastMessageUpdate(
-        conversationId,
-        io,
-        { conversationId },
-        "lastMessageReseted"
-      );
+      const messageBeforeLast = await getMessageBeforeLast(conversationId);
+      if (messageBeforeLast) {
+        await sendLastMessageUpdate(conversationId, io, messageBeforeLast);
+      } else {
+        await sendLastMessageUpdate(
+          conversationId,
+          io,
+          conversationId,
+          "lastMessageReseted"
+        );
+      }
     }
     await deleteMessage(messageId);
     socket.emit("messageDeleted", messageId);

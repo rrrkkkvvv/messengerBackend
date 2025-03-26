@@ -23,12 +23,11 @@ const getOtherUsers = async (userId) => {
         "_id messageText messageImage sentAt senderId conversationId seenIds"
       )
       .lean();
-
-    if (lastMessage[0]) {
-      const otherUserId = conversation.userIds.find(
-        (id) => id.toString() !== userId
-      );
-      if (otherUserId) {
+    const otherUserId = conversation.userIds.find(
+      (id) => id.toString() !== userId
+    );
+    if (otherUserId) {
+      if (lastMessage[0]) {
         let seenStatus = false;
 
         if (lastMessage[0].seenIds.length) {
@@ -37,6 +36,10 @@ const getOtherUsers = async (userId) => {
         lastMessages[otherUserId] = {
           ...lastMessage[0],
           seenStatus,
+        };
+      } else {
+        lastMessages[otherUserId] = {
+          conversationId: conversation._id,
         };
       }
     }

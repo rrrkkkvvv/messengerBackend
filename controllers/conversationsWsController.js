@@ -106,9 +106,31 @@ const sendLastMessageUpdate = async (
   const membersIds = await getConversationMembersIds(conversationId);
 
   membersIds.forEach((_id) => {
-    io.of("/users").to(`user_${_id}`).emit("lastMessageUpdated", sendData);
+    io.of("/users").to(`user_${_id}`).emit(title, sendData);
   });
 };
+const sendTypingStatusUpdate = async (
+  io,
+  conversationId,
+  userId,
+  typingStatus
+) => {
+  const membersIds = await getConversationMembersIds(conversationId);
+
+  membersIds.forEach((_id) => {
+    io.of("/users")
+      .to(`user_${_id}`)
+      .emit("userTypingStatusUpdate", { conversationId, userId, typingStatus });
+  });
+};
+const getMessageBeforeLast = async (conversationId) => {
+  const beforeLastMessage = await Message.find({ conversationId })
+    .sort({ sentAt: -1 })
+    .lean();
+
+  return beforeLastMessage[1];
+};
+
 module.exports = {
   sendMessage,
   getOrCreateConversation,
@@ -118,4 +140,6 @@ module.exports = {
   setSeenMessage,
   sendLastMessageUpdate,
   checkIsMessageLast,
+  getMessageBeforeLast,
+  sendTypingStatusUpdate,
 };
