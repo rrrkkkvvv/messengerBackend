@@ -19,6 +19,16 @@ const conversationSchema = new Schema(
         return this.isGroup ? true : false;
       },
     },
+    creatorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: () => {
+        return this.isGroup ? true : false;
+      },
+    },
+    avatarURL: {
+      type: String,
+    },
   },
   { versionKey: false, timestamps: true }
 );
@@ -30,6 +40,11 @@ const createConversationSchema = Joi.object({
   isGroup: Joi.boolean().default(false),
 
   name: Joi.alternatives().conditional("isGroup", {
+    is: true,
+    then: Joi.string().required(),
+    otherwise: Joi.forbidden(),
+  }),
+  creatorId: Joi.alternatives().conditional("isGroup", {
     is: true,
     then: Joi.string().required(),
     otherwise: Joi.forbidden(),

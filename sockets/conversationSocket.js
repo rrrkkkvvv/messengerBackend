@@ -5,43 +5,45 @@ const {
   deleteConversation,
   deleteMessage,
   setSeenMessage,
-  getConversationMembersIds,
   sendLastMessageUpdate,
   checkIsMessageLast,
   getMessageBeforeLast,
   sendTypingStatusUpdate,
+  getConversation,
 } = require("../controllers/conversationsWsController.js");
 
 const setupConversationsWebSocket = async (socket, io) => {
   const { _id } = socket.user;
 
-  socket.on(
-    "joinConversation",
-    async ({ userId, isGroup = false, name = "" }) => {
-      if (isGroup) {
-      } else {
-        const { status, conversation } = await getOrCreateConversation([
-          userId,
-          _id,
-        ]);
+  socket.on("joinConversation", async ({ userId, isGroup, conversationId }) => {
+    // GET CONVERSATION ID INSTEAD OF USERID
+    if (isGroup) {
+      const conversation = await getConversation(conversationId);
 
-        socket.join(`conversation_${conversation._id}`);
-        socket.emit("conversationData", conversation);
+      socket.join(`conversation_${conversation._id}`);
+      socket.emit("conversationData", conversation);
+    } else {
+      const { status, conversation } = await getOrCreateConversation([
+        userId,
+        _id,
+      ]);
 
-        if (status == "created") {
-          conversation.userIds.forEach((_id) => {
-            const otherUserId = conversation.userIds.find(
-              (otherId) => otherId !== _id
-            );
-            io.of("/users").to(`user_${_id}`).emit("newConversationWithUser", {
-              userId: otherUserId,
-              conversationId: conversation._id,
-            });
+      socket.join(`conversation_${conversation._id}`);
+      socket.emit("conversationData", conversation);
+
+      if (status == "created") {
+        conversation.userIds.forEach((_id) => {
+          const otherUserId = conversation.userIds.find(
+            (otherId) => otherId !== _id
+          );
+          io.of("/users").to(`user_${_id}`).emit("newConversationWithUser", {
+            userId: otherUserId,
+            conversationId: conversation._id,
           });
-        }
+        });
       }
     }
-  );
+  });
   socket.on("userTyping", async ({ conversationId }) => {
     await sendTypingStatusUpdate(io, conversationId, _id, true);
   });

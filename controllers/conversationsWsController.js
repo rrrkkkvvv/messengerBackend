@@ -1,17 +1,46 @@
 const { Conversation } = require("../models/Conversation.js");
 const { Message } = require("../models/Message.js");
-
+const mongoose = require("mongoose");
+const { User } = require("../models/User.js");
 const getConversation = async (conversationId) => {
   const result = await Conversation.aggregate([
-    { $match: { _id: conversationId } },
+    {
+      $match: {
+        _id:
+          typeof conversationId === "string"
+            ? new mongoose.Types.ObjectId(conversationId)
+            : conversationId,
+      },
+    },
     {
       $lookup: {
         from: "messages",
-        localField: "_id",
-        foreignField: "conversationId",
+        let: { conversationId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$conversationId", "$$conversationId"] },
+            },
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "senderId",
+              foreignField: "_id",
+              as: "sender",
+            },
+          },
+          {
+            $unwind: {
+              path: "$sender",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ],
         as: "messages",
       },
     },
+
     {
       $lookup: {
         from: "users",
@@ -27,6 +56,7 @@ const getConversation = async (conversationId) => {
 const getOrCreateConversation = async (membersArray) => {
   const conversation = await Conversation.findOne({
     userIds: { $all: membersArray },
+    isGroup: false,
   });
   if (conversation) {
     const res = await getConversation(conversation._id);
@@ -42,6 +72,16 @@ const getOrCreateConversation = async (membersArray) => {
     return { status: "created", conversation: res };
   }
 };
+
+const createGroupConversation = async (name, userIds, creatorId) => {
+  const newConversation = await Conversation.create({
+    isGroup: true,
+    userIds,
+    name,
+    creatorId,
+  });
+  return newConversation;
+};
 const sendMessage = async ({ conversationId, message, userId }) => {
   const newMessage = await Message.create({
     senderId: userId,
@@ -49,8 +89,14 @@ const sendMessage = async ({ conversationId, message, userId }) => {
     messageImage: message.messageImage,
     messageText: message.messageText,
   });
-
-  return newMessage;
+  const cleanMessage = newMessage.toObject();
+  const sender = await User.findById(newMessage.senderId)
+    .lean()
+    .select("-password");
+  return {
+    ...cleanMessage,
+    sender,
+  };
 };
 const deleteMessage = async (messageId) => {
   await Message.findByIdAndDelete(messageId);
@@ -67,7 +113,10 @@ const updateMessage = async (message) => {
       new: true,
     }
   );
-  return updatedMessage;
+  const sender = await User.findById(updatedMessage.senderId)
+    .lean()
+    .select("-password");
+  return { ...updatedMessage, sender };
 };
 const checkIsMessageLast = async (_id, conversationId) => {
   const lastMessage = await Message.find({ conversationId })
@@ -127,8 +176,15 @@ const getMessageBeforeLast = async (conversationId) => {
   const beforeLastMessage = await Message.find({ conversationId })
     .sort({ sentAt: -1 })
     .lean();
-
-  return beforeLastMessage[1];
+  console.log(beforeLastMessage);
+  if (beforeLastMessage[1]) {
+    const sender = await User.findById(beforeLastMessage[1].senderId)
+      .lean()
+      .select("-password");
+    return { ...beforeLastMessage[1], sender };
+  } else {
+    return null;
+  }
 };
 
 module.exports = {
@@ -142,4 +198,6 @@ module.exports = {
   checkIsMessageLast,
   getMessageBeforeLast,
   sendTypingStatusUpdate,
+  createGroupConversation,
+  getConversation,
 };
