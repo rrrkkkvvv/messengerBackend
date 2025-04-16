@@ -176,7 +176,6 @@ const getMessageBeforeLast = async (conversationId) => {
   const beforeLastMessage = await Message.find({ conversationId })
     .sort({ sentAt: -1 })
     .lean();
-  console.log(beforeLastMessage);
   if (beforeLastMessage[1]) {
     const sender = await User.findById(beforeLastMessage[1].senderId)
       .lean()
