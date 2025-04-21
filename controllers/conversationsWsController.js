@@ -103,7 +103,28 @@ const deleteMessage = async (messageId) => {
 };
 const getConversationMembersIds = async (conversationId) => {
   const conversation = await Conversation.findById(conversationId);
-  return conversation.userIds;
+  if (conversation.isGroup) {
+    return [...conversation.userIds, conversation.ownerId];
+  } else {
+    return conversation.userIds;
+  }
+};
+
+const kickUserFromConversation = async (
+  conversationId,
+  kickedUserId,
+  currentUserId
+) => {
+  const conversation = await Conversation.findById(conversationId);
+  if (!conversation.isGroup && conversation.creatorId !== currentUserId) return;
+  await Conversation.findByIdAndUpdate(conversationId, {
+    $pull: { userIds: kickedUserId },
+  });
+};
+const leaveFromConversation = async (conversationId, currentUserId) => {
+  await Conversation.findByIdAndUpdate(conversationId, {
+    $pull: { userIds: currentUserId },
+  });
 };
 const updateMessage = async (message) => {
   const updatedMessage = await Message.findByIdAndUpdate(
@@ -143,19 +164,34 @@ const setSeenMessage = async (userId, messageId) => {
   );
   return updatedMessage;
 };
+const updateGroupConversation = async (updatedGroupInfo) => {
+  return await Conversation.findByIdAndUpdate(
+    updatedGroupInfo._id,
+    updatedGroupInfo
+  );
+};
 const deleteConversation = async (conversationId) => {
   await Conversation.findByIdAndDelete(conversationId);
 };
-const sendLastMessageUpdate = async (
+const emitToConversationMembers = async (
   conversationId,
   io,
   sendData,
-  title = "lastMessageUpdated"
+  title
 ) => {
   const membersIds = await getConversationMembersIds(conversationId);
 
   membersIds.forEach((_id) => {
     io.of("/users").to(`user_${_id}`).emit(title, sendData);
+  });
+};
+const sendGroupUpdate = async (io, updatedGroupInfo) => {
+  const membersIds = await getConversationMembersIds(updatedGroupInfo._id);
+
+  membersIds.forEach((_id) => {
+    io.of("/users")
+      .to(`user_${_id}`)
+      .emit("groupConversationUpdated", updatedGroupInfo);
   });
 };
 const sendTypingStatusUpdate = async (
@@ -185,18 +221,27 @@ const getMessageBeforeLast = async (conversationId) => {
     return null;
   }
 };
+const isConversationGroup = async (conversationId) => {
+  const conversation = await Conversation.findById(conversationId);
+  return conversation.isGroup;
+};
 
 module.exports = {
+  isConversationGroup,
+  leaveFromConversation,
+  sendGroupUpdate,
+  updateGroupConversation,
   sendMessage,
   getOrCreateConversation,
   deleteMessage,
   updateMessage,
   deleteConversation,
   setSeenMessage,
-  sendLastMessageUpdate,
+  emitToConversationMembers,
   checkIsMessageLast,
   getMessageBeforeLast,
   sendTypingStatusUpdate,
   createGroupConversation,
   getConversation,
+  kickUserFromConversation,
 };

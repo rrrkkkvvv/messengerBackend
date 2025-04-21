@@ -87,6 +87,7 @@ const getConversations = async (userId) => {
         userIds: conversation.userIds,
         isGroup: true,
         creatorId: conversation.creatorId,
+        avatarURL: conversation.avatarURL,
         lastMessage: lastMessage ? lastMessage : null,
       };
     }
@@ -97,7 +98,7 @@ const getConversations = async (userId) => {
 const deleteUserById = async (id) => {
   return await User.findByIdAndDelete(id);
 };
-const updateUserById = async (updatedProfile) => {
+const updateUser = async (updatedProfile) => {
   return await User.findByIdAndUpdate(updatedProfile._id, updatedProfile);
 };
 
@@ -105,5 +106,5 @@ module.exports = {
   getUserById,
   getConversations,
   deleteUserById,
-  updateUserById,
+  updateUser,
 };

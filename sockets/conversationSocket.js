@@ -5,11 +5,16 @@ const {
   deleteConversation,
   deleteMessage,
   setSeenMessage,
-  sendLastMessageUpdate,
+  emitToConversationMembers,
   checkIsMessageLast,
   getMessageBeforeLast,
   sendTypingStatusUpdate,
   getConversation,
+  updateGroupConversation,
+  sendGroupUpdate,
+  kickUserFromConversation,
+  isConversationGroup,
+  leaveFromConversation,
 } = require("../controllers/conversationsWsController.js");
 
 const setupConversationsWebSocket = async (socket, io) => {
@@ -44,6 +49,32 @@ const setupConversationsWebSocket = async (socket, io) => {
       }
     }
   });
+
+  socket.on(
+    "kickUserFromConversation",
+    async ({ conversationId, kickedUserId }) => {
+      await emitToConversationMembers(
+        conversationId,
+        io,
+        { conversationId, kickedUserId },
+        "kickedUserFromConversation"
+      );
+      await kickUserFromConversation(conversationId, kickedUserId, _id);
+    }
+  );
+  socket.on("leaveFromConversation", async ({ conversationId }) => {
+    await emitToConversationMembers(
+      conversationId,
+      io,
+      { conversationId, kickedUserId: _id },
+      "kickedUserFromConversation"
+    );
+    await leaveFromConversation(conversationId, _id);
+  });
+  socket.on("updateGroupConversation", async ({ updatedGroupInfo }) => {
+    await updateGroupConversation(updatedGroupInfo);
+    await sendGroupUpdate(io, updatedGroupInfo);
+  });
   socket.on("userTyping", async ({ conversationId }) => {
     await sendTypingStatusUpdate(io, conversationId, _id, true);
   });
@@ -60,13 +91,23 @@ const setupConversationsWebSocket = async (socket, io) => {
     socket
       .to(`conversation_${conversationId}`)
       .emit("newMessage", sendedMessage);
-    await sendLastMessageUpdate(conversationId, io, sendedMessage);
+    await emitToConversationMembers(
+      conversationId,
+      io,
+      sendedMessage,
+      "lastMessageUpdated"
+    );
   });
   socket.on("updateMessage", async ({ conversationId, message }) => {
     const updatedMessage = await updateMessage(message);
     const check = await checkIsMessageLast(message._id, conversationId);
     if (check) {
-      await sendLastMessageUpdate(conversationId, io, updatedMessage);
+      await emitToConversationMembers(
+        conversationId,
+        io,
+        updatedMessage,
+        "lastMessageUpdated"
+      );
     }
 
     socket.emit("messageUpdated", updatedMessage);
@@ -78,9 +119,14 @@ const setupConversationsWebSocket = async (socket, io) => {
     if (await checkIsMessageLast(messageId, conversationId)) {
       const messageBeforeLast = await getMessageBeforeLast(conversationId);
       if (messageBeforeLast) {
-        await sendLastMessageUpdate(conversationId, io, messageBeforeLast);
+        await emitToConversationMembers(
+          conversationId,
+          io,
+          messageBeforeLast,
+          "lastMessageUpdated"
+        );
       } else {
-        await sendLastMessageUpdate(
+        await emitToConversationMembers(
           conversationId,
           io,
           conversationId,
@@ -98,10 +144,15 @@ const setupConversationsWebSocket = async (socket, io) => {
   socket.on("setSeenMessage", async ({ conversationId, userId, messageId }) => {
     const updatedMessage = await setSeenMessage(userId, messageId);
     if (await checkIsMessageLast(messageId, conversationId)) {
-      await sendLastMessageUpdate(conversationId, io, {
+      await emitToConversationMembers(
         conversationId,
-        seenStatus: true,
-      });
+        io,
+        {
+          conversationId,
+          seenStatus: true,
+        },
+        "lastMessageUpdated"
+      );
     }
 
     socket.emit("messageUpdated", updatedMessage);
@@ -111,12 +162,14 @@ const setupConversationsWebSocket = async (socket, io) => {
       .emit("messageUpdated", updatedMessage);
   });
   socket.on("deleteConversation", async ({ conversationId }) => {
-    await sendLastMessageUpdate(conversationId, io, { conversationId });
+    const isGroup = await isConversationGroup(conversationId);
+    await emitToConversationMembers(
+      conversationId,
+      io,
+      { conversationId, isGroup },
+      "conversationDeleted"
+    );
     await deleteConversation(conversationId);
-    socket.emit("conversationDeleted", conversationId);
-    socket
-      .to(`conversation_${conversationId}`)
-      .emit("conversationDeleted", conversationId);
   });
   socket.on("leaveConversation", ({ conversationId }) => {
     console.log("leave");

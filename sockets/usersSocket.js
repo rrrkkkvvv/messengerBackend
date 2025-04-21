@@ -4,7 +4,7 @@ const {
 const {
   getConversations,
   deleteUserById,
-  updateUserById,
+  updateUser,
 } = require("../controllers/usersWsControllers.js");
 
 const usersOnline = new Set();
@@ -32,7 +32,7 @@ const setupUsersWebSocket = async (socket) => {
     });
 
     socket.on("updateUser", async ({ updatedProfile }) => {
-      await updateUserById(updatedProfile);
+      await updateUser(updatedProfile);
       socket.broadcast.emit("userUpdated", updatedProfile);
     });
     socket.on(

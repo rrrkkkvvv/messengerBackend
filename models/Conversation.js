@@ -28,6 +28,7 @@ const conversationSchema = new Schema(
     },
     avatarURL: {
       type: String,
+      default: null,
     },
   },
   { versionKey: false, timestamps: true }
