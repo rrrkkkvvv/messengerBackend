@@ -1,3 +1,4 @@
+const wsControllersWrapper = require("../helpers/wsControllersWrapper.js");
 const { Conversation } = require("../models/Conversation.js");
 const { Message } = require("../models/Message.js");
 const { User } = require("../models/User.js");
@@ -103,8 +104,8 @@ const updateUser = async (updatedProfile) => {
 };
 
 module.exports = {
-  getUserById,
-  getConversations,
-  deleteUserById,
-  updateUser,
+  getUserById: wsControllersWrapper(getUserById),
+  getConversations: wsControllersWrapper(getConversations),
+  deleteUserById: wsControllersWrapper(deleteUserById),
+  updateUser: wsControllersWrapper(updateUser),
 };

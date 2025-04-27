@@ -2,6 +2,8 @@ const { Conversation } = require("../models/Conversation.js");
 const { Message } = require("../models/Message.js");
 const mongoose = require("mongoose");
 const { User } = require("../models/User.js");
+const controllersWrapper = require("../helpers/controllersWrapper.js");
+const wsControllersWrapper = require("../helpers/wsControllersWrapper.js");
 const getConversation = async (conversationId) => {
   const result = await Conversation.aggregate([
     {
@@ -227,21 +229,21 @@ const isConversationGroup = async (conversationId) => {
 };
 
 module.exports = {
-  isConversationGroup,
-  leaveFromConversation,
-  sendGroupUpdate,
-  updateGroupConversation,
-  sendMessage,
-  getOrCreateConversation,
-  deleteMessage,
-  updateMessage,
-  deleteConversation,
-  setSeenMessage,
-  emitToConversationMembers,
-  checkIsMessageLast,
-  getMessageBeforeLast,
-  sendTypingStatusUpdate,
-  createGroupConversation,
-  getConversation,
-  kickUserFromConversation,
+  isConversationGroup: wsControllersWrapper(isConversationGroup),
+  leaveFromConversation: wsControllersWrapper(leaveFromConversation),
+  sendGroupUpdate: wsControllersWrapper(sendGroupUpdate),
+  updateGroupConversation: wsControllersWrapper(updateGroupConversation),
+  sendMessage: wsControllersWrapper(sendMessage),
+  getOrCreateConversation: wsControllersWrapper(getOrCreateConversation),
+  deleteMessage: wsControllersWrapper(deleteMessage),
+  updateMessage: wsControllersWrapper(updateMessage),
+  deleteConversation: wsControllersWrapper(deleteConversation),
+  setSeenMessage: wsControllersWrapper(setSeenMessage),
+  emitToConversationMembers: wsControllersWrapper(emitToConversationMembers),
+  checkIsMessageLast: wsControllersWrapper(checkIsMessageLast),
+  getMessageBeforeLast: wsControllersWrapper(getMessageBeforeLast),
+  sendTypingStatusUpdate: wsControllersWrapper(sendTypingStatusUpdate),
+  createGroupConversation: wsControllersWrapper(createGroupConversation),
+  getConversation: wsControllersWrapper(getConversation),
+  kickUserFromConversation: wsControllersWrapper(kickUserFromConversation),
 };

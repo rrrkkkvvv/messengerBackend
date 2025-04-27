@@ -22,6 +22,8 @@ const setupConversationsWebSocket = async (socket, io) => {
 
   socket.on("joinConversation", async ({ userId, isGroup, conversationId }) => {
     // GET CONVERSATION ID INSTEAD OF USERID
+    // userId = "normId" : undefined : "neNormId"
+
     if (isGroup) {
       const conversation = await getConversation(conversationId);
 
