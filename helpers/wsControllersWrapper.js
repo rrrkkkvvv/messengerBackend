@@ -1,12 +1,11 @@
 const wsControllersWrapper = (controller) => {
-  const func = async (arguments) => {
+  return async (...args) => {
     try {
-      const result = await controller(arguments);
+      const result = await controller(...args);
       return result;
     } catch (error) {
       console.error(error);
     }
   };
-  return func;
 };
 module.exports = wsControllersWrapper;

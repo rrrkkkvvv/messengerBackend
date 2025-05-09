@@ -19,7 +19,6 @@ const {
 
 const setupConversationsWebSocket = async (socket, io) => {
   const { _id } = socket.user;
-
   socket.on("joinConversation", async ({ userId, isGroup, conversationId }) => {
     // GET CONVERSATION ID INSTEAD OF USERID
     // userId = "normId" : undefined : "neNormId"
@@ -165,6 +164,7 @@ const setupConversationsWebSocket = async (socket, io) => {
   });
   socket.on("deleteConversation", async ({ conversationId }) => {
     const isGroup = await isConversationGroup(conversationId);
+
     await emitToConversationMembers(
       conversationId,
       io,
