@@ -181,12 +181,6 @@ const emitToConversationMembers = async (
   sendData,
   title
 ) => {
-  console.log("_------------------------------------------------------------");
-  console.log(conversationId);
-  console.log(io);
-  console.log(sendData);
-  console.log(title);
-  console.log("_------------------------------------------------------------");
   const membersIds = await getConversationMembersIds(conversationId);
 
   membersIds.forEach((_id) => {
