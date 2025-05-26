@@ -104,7 +104,7 @@ const deleteMessage = async (messageId) => {
   await Message.findByIdAndDelete(messageId);
 };
 const getConversationMembersIds = async (conversationId) => {
-  const conversation = await Conversation.findById(conversationId);
+  const conversation = await Conversation.findById(conversationId).lean();
   if (conversation.isGroup) {
     return [...conversation.userIds, conversation.ownerId];
   } else {
@@ -135,7 +135,7 @@ const updateMessage = async (message) => {
     {
       new: true,
     }
-  );
+  ).lean();
   const sender = await User.findById(updatedMessage.senderId)
     .lean()
     .select("-password");
