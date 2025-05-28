@@ -27,8 +27,8 @@ const setupUsersWebSocket = async (socket) => {
     });
 
     socket.on("deleteUser", async () => {
-      await deleteUserById(user.id);
-      socket.broadcast.emit("userDeleted", user.id);
+      await deleteUserById(user._id);
+      socket.broadcast.emit("userDeleted", user._id);
     });
 
     socket.on("updateUser", async ({ updatedProfile }) => {
