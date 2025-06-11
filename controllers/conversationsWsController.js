@@ -2,7 +2,6 @@ const { Conversation } = require("../models/Conversation.js");
 const { Message } = require("../models/Message.js");
 const mongoose = require("mongoose");
 const { User } = require("../models/User.js");
-const controllersWrapper = require("../helpers/controllersWrapper.js");
 const wsControllersWrapper = require("../helpers/wsControllersWrapper.js");
 const getConversation = async (conversationId) => {
   const result = await Conversation.aggregate([
@@ -52,7 +51,25 @@ const getConversation = async (conversationId) => {
       },
     },
   ]);
-  return result[0];
+  const conversation = result[0];
+  const lastMessage = await Message.find({
+    conversationId: conversation._id,
+  })
+    .sort({ sentAt: -1 })
+    .lean();
+
+  if (lastMessage[0]) {
+    conversation.lastMessage = {
+      ...lastMessage[0],
+      seenStatus:
+        lastMessage[0].seenIds.length === conversation.userIds.length - 1,
+    };
+  } else {
+    conversation.lastMessage = {
+      conversationId: conversation._id,
+    };
+  }
+  return conversation;
 };
 
 const getOrCreateConversation = async (membersArray) => {
@@ -121,6 +138,13 @@ const kickUserFromConversation = async (
   if (!conversation.isGroup && conversation.creatorId !== currentUserId) return;
   await Conversation.findByIdAndUpdate(conversationId, {
     $pull: { userIds: kickedUserId },
+  });
+};
+const addUsersToConversation = async (conversationId, users, currentUserId) => {
+  const conversation = await Conversation.findById(conversationId);
+  if (!conversation.isGroup && conversation.creatorId !== currentUserId) return;
+  await Conversation.findByIdAndUpdate(conversationId, {
+    $push: { userIds: { $each: users } },
   });
 };
 const leaveFromConversation = async (conversationId, currentUserId) => {
@@ -246,4 +270,5 @@ module.exports = {
   createGroupConversation: wsControllersWrapper(createGroupConversation),
   getConversation: wsControllersWrapper(getConversation),
   kickUserFromConversation: wsControllersWrapper(kickUserFromConversation),
+  addUsersToConversation: wsControllersWrapper(addUsersToConversation),
 };
