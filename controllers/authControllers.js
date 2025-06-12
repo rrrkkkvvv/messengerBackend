@@ -5,7 +5,10 @@ const HttpError = require("../helpers/HttpError.js");
 const controllersWrapper = require("../helpers/controllersWrapper.js");
 const { User } = require("../models/User.js");
 const { OAuth2Client } = require("google-auth-library");
-const { jwtSecret, googleClientId } = dotenvVars;
+const {
+  jwtSecret,
+  googleClient: { googleClientId },
+} = dotenvVars;
 const signUp = async (req, res) => {
   const { email, password } = req.body;
 

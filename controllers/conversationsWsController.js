@@ -3,6 +3,7 @@ const { Message } = require("../models/Message.js");
 const mongoose = require("mongoose");
 const { User } = require("../models/User.js");
 const wsControllersWrapper = require("../helpers/wsControllersWrapper.js");
+const { cloudinary } = require("../config.js");
 const getConversation = async (conversationId) => {
   const result = await Conversation.aggregate([
     {
@@ -101,13 +102,35 @@ const createGroupConversation = async (name, userIds, creatorId) => {
   });
   return newConversation;
 };
+const uploadImage = (fileBuffer) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { resource_type: "image" },
+      (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+        resolve(result);
+      }
+    );
+    stream.end(fileBuffer);
+  });
+};
+
 const sendMessage = async ({ conversationId, message, userId }) => {
-  const newMessage = await Message.create({
+  const messageData = {
     senderId: userId,
     conversationId,
-    messageImage: message.messageImage,
     messageText: message.messageText,
-  });
+  };
+  if (message.messageImage.fileBuffer) {
+    const buffer = Buffer.from(message.messageImage.fileBuffer);
+
+    const { secure_url } = await uploadImage(buffer);
+    messageData.messageImage = secure_url;
+  }
+  const newMessage = await Message.create(messageData);
+
   const cleanMessage = newMessage.toObject();
   const sender = await User.findById(newMessage.senderId)
     .lean()
@@ -153,9 +176,16 @@ const leaveFromConversation = async (conversationId, currentUserId) => {
   });
 };
 const updateMessage = async (message) => {
+  const messageData = { ...message };
+  if (message.messageImage.fileBuffer) {
+    const buffer = Buffer.from(message.messageImage.fileBuffer);
+
+    const { secure_url } = await uploadImage(buffer);
+    messageData.messageImage = secure_url;
+  }
   const updatedMessage = await Message.findByIdAndUpdate(
-    message._id,
-    { ...message, $set: { editedAt: new Date() } },
+    messageData._id,
+    { ...messageData, $set: { editedAt: new Date() } },
     {
       new: true,
     }
