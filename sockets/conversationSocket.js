@@ -86,8 +86,8 @@ const setupConversationsWebSocket = async (socket, io) => {
     await leaveFromConversation(conversationId, _id);
   });
   socket.on("updateGroupConversation", async ({ updatedGroupInfo }) => {
-    await updateGroupConversation(updatedGroupInfo);
-    await sendGroupUpdate(io, updatedGroupInfo);
+    const result = await updateGroupConversation(updatedGroupInfo);
+    await sendGroupUpdate(io, result);
   });
   socket.on("userTyping", async ({ conversationId }) => {
     await sendTypingStatusUpdate(io, conversationId, _id, true);
@@ -197,7 +197,6 @@ const setupConversationsWebSocket = async (socket, io) => {
     await deleteConversation(conversationId);
   });
   socket.on("leaveConversation", ({ conversationId }) => {
-    console.log("leave");
     socket.leave(`conversation_${conversationId}`);
   });
 };

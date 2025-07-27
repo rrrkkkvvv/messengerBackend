@@ -32,8 +32,8 @@ const setupUsersWebSocket = async (socket) => {
     });
 
     socket.on("updateUser", async ({ updatedProfile }) => {
-      await updateUser(updatedProfile);
-      socket.broadcast.emit("userUpdated", updatedProfile);
+      const result = await updateUser(updatedProfile);
+      socket.broadcast.emit("userUpdated", result);
     });
     socket.on(
       "createGroupConversation",

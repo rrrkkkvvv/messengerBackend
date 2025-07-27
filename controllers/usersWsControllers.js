@@ -1,3 +1,4 @@
+const { uploadImage } = require("../helpers/uploadImage.js");
 const wsControllersWrapper = require("../helpers/wsControllersWrapper.js");
 const { Conversation } = require("../models/Conversation.js");
 const { Message } = require("../models/Message.js");
@@ -100,7 +101,17 @@ const deleteUserById = async (id) => {
   return await User.findByIdAndDelete(id);
 };
 const updateUser = async (updatedProfile) => {
-  return await User.findByIdAndUpdate(updatedProfile._id, updatedProfile);
+  let profile = { ...updatedProfile };
+  if (updatedProfile.avatar.fileBuffer.length === 0) {
+    profile.avatarURL = null;
+  } else if (updatedProfile.avatar.fileBuffer) {
+    const buffer = Buffer.from(updatedProfile.avatar.fileBuffer);
+
+    const { secure_url } = await uploadImage(buffer);
+    profile.avatarURL = secure_url;
+  }
+  await User.findByIdAndUpdate(updatedProfile._id, profile);
+  return profile;
 };
 
 module.exports = {
