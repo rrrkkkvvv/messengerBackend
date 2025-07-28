@@ -20,7 +20,7 @@ const getConversations = async (userId) => {
 
   const lastMessages = {};
   for (const conversation of conversations) {
-    const lastMessage = await Message.find({
+    const lastMessage = await Message.findOne({
       conversationId: conversation._id,
     })
       .sort({ sentAt: -1 })
@@ -28,11 +28,11 @@ const getConversations = async (userId) => {
     const otherUserId = conversation.userIds.find(
       (id) => id.toString() !== userId
     );
-    if (lastMessage[0]) {
+    if (lastMessage) {
       lastMessages[otherUserId] = {
-        ...lastMessage[0],
+        ...lastMessage,
         seenStatus:
-          lastMessage[0].seenIds.length === conversation.userIds.length - 1,
+          lastMessage.seenIds.length === conversation.userIds.length - 1,
       };
     } else {
       lastMessages[otherUserId] = {
@@ -56,21 +56,20 @@ const getConversations = async (userId) => {
     isGroup: true,
   }).lean();
   for (const groupConversation of groupConversations) {
-    const lastMessage = await Message.find({
+    const lastMessage = await Message.findOne({
       conversationId: groupConversation._id,
     })
       .sort({ sentAt: -1 })
       .lean();
-    if (lastMessage[0]) {
-      const sender = await User.findById(lastMessage[0].senderId)
+    if (lastMessage) {
+      const sender = await User.findById(lastMessage.senderId)
         .lean()
         .select("-password");
       groupsLastMessages[groupConversation._id] = {
-        ...lastMessage[0],
+        ...lastMessage,
         sender,
         seenStatus:
-          lastMessage[0].seenIds.length ===
-          groupConversation.userIds.length - 1,
+          lastMessage.seenIds.length === groupConversation.userIds.length - 1,
       };
     } else {
       groupsLastMessages[groupConversation._id] = {
