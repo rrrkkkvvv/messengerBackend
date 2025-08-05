@@ -101,9 +101,10 @@ const deleteUserById = async (id) => {
 };
 const updateUser = async (updatedProfile) => {
   let profile = { ...updatedProfile };
-  if (updatedProfile.avatar.fileBuffer.length === 0) {
+
+  if (updatedProfile.avatar?.fileBuffer.length === 0) {
     profile.avatarURL = null;
-  } else if (updatedProfile.avatar.fileBuffer) {
+  } else if (updatedProfile.avatar?.buffer) {
     const buffer = Buffer.from(updatedProfile.avatar.fileBuffer);
 
     const { secure_url } = await uploadImage(buffer);

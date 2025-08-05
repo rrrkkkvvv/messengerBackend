@@ -163,7 +163,8 @@ const leaveFromConversation = async (conversationId, currentUserId) => {
 };
 const updateMessage = async (message) => {
   const messageData = { ...message };
-  if (message.messageImage.fileBuffer) {
+  console.log(messageData);
+  if (message.messageImage?.fileBuffer) {
     const buffer = Buffer.from(message.messageImage.fileBuffer);
 
     const { secure_url } = await uploadImage(buffer);
@@ -176,6 +177,8 @@ const updateMessage = async (message) => {
       new: true,
     }
   ).lean();
+  console.log(updatedMessage);
+
   const sender = await User.findById(updatedMessage.senderId)
     .lean()
     .select("-password");
@@ -208,9 +211,9 @@ const setSeenMessage = async (userId, messageId) => {
 };
 const updateGroupConversation = async (updatedGroupInfo) => {
   let groupInfo = { ...updatedGroupInfo };
-  if (updatedGroupInfo.avatar.fileBuffer.length === 0) {
+  if (updatedGroupInfo.avatar?.fileBuffer.length === 0) {
     groupInfo.avatarURL = null;
-  } else if (updatedGroupInfo.avatar.fileBuffer) {
+  } else if (updatedGroupInfo.avatar?.fileBuffer) {
     const buffer = Buffer.from(updatedGroupInfo.avatar.fileBuffer);
 
     const { secure_url } = await uploadImage(buffer);
