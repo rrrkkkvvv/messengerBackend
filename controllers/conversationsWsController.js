@@ -163,7 +163,6 @@ const leaveFromConversation = async (conversationId, currentUserId) => {
 };
 const updateMessage = async (message) => {
   const messageData = { ...message };
-  console.log(messageData);
   if (message.messageImage?.fileBuffer) {
     const buffer = Buffer.from(message.messageImage.fileBuffer);
 
@@ -177,7 +176,6 @@ const updateMessage = async (message) => {
       new: true,
     }
   ).lean();
-  console.log(updatedMessage);
 
   const sender = await User.findById(updatedMessage.senderId)
     .lean()
