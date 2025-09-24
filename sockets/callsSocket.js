@@ -19,19 +19,25 @@ const setupCallWebSocket = async (socket, io) => {
       from: data.from,
     });
   });
-
+  socket.on("sendSdp", (data) => {
+    io.of("/calls")
+      .to(`calls_${data.to}`)
+      .emit("newSdp", {
+        sdp: data.sdp,
+        from: data.from,
+        sdpType: data.sdpType,
+      });
+  });
   socket.on("answerCall", (data) => {
     io.of("/calls")
       .to(`calls_${data.to}`)
       .emit("callAccepted", { sdp: data.sdp, from: data.from });
   });
   socket.on("mediaStateChange", (data) => {
-    io.of("/calls")
-      .to(`calls_${data.to}`)
-      .emit("mediaStateChanged", {
-        from: data.from,
-        mediaState: data.mediaState,
-      });
+    io.of("/calls").to(`calls_${data.to}`).emit("mediaStateChanged", {
+      from: data.from,
+      mediaState: data.mediaState,
+    });
   });
   socket.on("endCall", (data) => {
     io.of("/calls").to(`calls_${data.callWith}`).emit("callEnded");
