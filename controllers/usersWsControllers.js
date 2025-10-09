@@ -1,3 +1,4 @@
+const controllersWrapper = require("../helpers/controllersWrapper.js");
 const { uploadImage } = require("../helpers/uploadImage.js");
 const wsControllersWrapper = require("../helpers/wsControllersWrapper.js");
 const { Conversation } = require("../models/Conversation.js");
@@ -114,9 +115,53 @@ const updateUser = async (updatedProfile) => {
   return profile;
 };
 
+const deleteAccount = async (req, res) => {
+  const { _id } = req.user;
+  const result = await deleteUserById(_id);
+  if (!result) {
+    throw HttpError(400, "Account was not deleted");
+  }
+
+  if (await getUserById(_id)) {
+    throw HttpError(400, "Account was not deleted");
+  }
+
+  res.status(200).json({
+    code: 200,
+    status: "success",
+  });
+};
+const updateProfile = async (req, res) => {
+  const { updatedProfile } = req.body;
+
+  if (updatedProfile.avatar?.fileBuffer.length === 0) {
+    profile.avatarURL = null;
+  } else if (updatedProfile.avatar?.buffer) {
+    const buffer = Buffer.from(updatedProfile.avatar.fileBuffer);
+
+    const { secure_url } = await uploadImage(buffer);
+    profile.avatarURL = secure_url;
+  }
+  const { name, _id, avatarURL } = await User.findByIdAndUpdate(
+    updatedProfile._id,
+    profile
+  )
+    .select(["-password", "-googleId", "token"])
+    .lean();
+  res.status(200).json({
+    code: 200,
+    status: "success",
+    body: {
+      updatedProfile: { name, _id, avatarURL },
+    },
+  });
+};
+
 module.exports = {
   getUserById: wsControllersWrapper(getUserById),
   getConversations: wsControllersWrapper(getConversations),
   deleteUserById: wsControllersWrapper(deleteUserById),
   updateUser: wsControllersWrapper(updateUser),
+  deleteAccount: controllersWrapper(deleteAccount),
+  updateProfile: controllersWrapper(updateProfile),
 };

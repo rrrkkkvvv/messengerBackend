@@ -42,8 +42,8 @@ const userSchema = new Schema(
 userSchema.post("save", handleMongooseError);
 
 const signUpSchema = Joi.object({
-  email: Joi.string().pattern(emailRegexp).required(),
-  name: Joi.string().required(),
+  email: Joi.string().pattern(emailRegexp).required().length(254),
+  name: Joi.string().required().length(90),
   password: Joi.string().required(),
 });
 const editUserAvatarSchema = Joi.object({
@@ -56,6 +56,16 @@ const signInSchema = Joi.object({
 const googleAuthSchema = Joi.object({
   googleToken: Joi.string().required(),
 });
+const updateProfileSchema = Joi.object({
+  _id: Joi.string().required(),
+  name: Joi.string().optional(),
+  avatar: Joi.object({
+    fileBuffer: Joi.alternatives().try(
+      Joi.array().items(Joi.number()),
+      Joi.valid(null)
+    ),
+  }).optional(),
+});
 const User = model("user", userSchema);
 module.exports = {
   User,
@@ -63,4 +73,5 @@ module.exports = {
   signInSchema,
   googleAuthSchema,
   editUserAvatarSchema,
+  updateProfileSchema,
 };
