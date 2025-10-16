@@ -1,9 +1,10 @@
-const controllersWrapper = require("../helpers/controllersWrapper.js");
-const { uploadImage } = require("../helpers/uploadImage.js");
-const wsControllersWrapper = require("../helpers/wsControllersWrapper.js");
-const { Conversation } = require("../models/Conversation.js");
-const { Message } = require("../models/Message.js");
-const { User } = require("../models/User.js");
+const { io } = require("../../app.js");
+const controllersWrapper = require("../../helpers/controllersWrapper.js");
+const { uploadImage } = require("../../helpers/uploadImage.js");
+const wsControllersWrapper = require("../../helpers/wsControllersWrapper.js");
+const { Conversation } = require("../../models/Conversation.js");
+const { Message } = require("../../models/Message.js");
+const { User } = require("../../models/User.js");
 
 const getUserById = async (id) => {
   return await User.findById(id);
@@ -12,7 +13,7 @@ const getUserById = async (id) => {
 const getConversations = async (userId) => {
   const otherUsers = await User.find({ _id: { $ne: userId } })
     .lean()
-    .select("-password");
+    .select(["-password", "-token", "-googleId", "-createdAt", "-updatedAt"]);
 
   const conversations = await Conversation.find({
     userIds: { $all: [userId] },
@@ -65,7 +66,7 @@ const getConversations = async (userId) => {
     if (lastMessage) {
       const sender = await User.findById(lastMessage.senderId)
         .lean()
-        .select("-password");
+        .select(["-password", "-token", "-googleId"]);
       groupsLastMessages[groupConversation._id] = {
         ...lastMessage,
         sender,
@@ -100,20 +101,6 @@ const getConversations = async (userId) => {
 const deleteUserById = async (id) => {
   return await User.findByIdAndDelete(id);
 };
-const updateUser = async (updatedProfile) => {
-  let profile = { ...updatedProfile };
-
-  if (updatedProfile.avatar?.fileBuffer.length === 0) {
-    profile.avatarURL = null;
-  } else if (updatedProfile.avatar?.buffer) {
-    const buffer = Buffer.from(updatedProfile.avatar.fileBuffer);
-
-    const { secure_url } = await uploadImage(buffer);
-    profile.avatarURL = secure_url;
-  }
-  await User.findByIdAndUpdate(updatedProfile._id, profile);
-  return profile;
-};
 
 const deleteAccount = async (req, res) => {
   const { _id } = req.user;
@@ -125,34 +112,39 @@ const deleteAccount = async (req, res) => {
   if (await getUserById(_id)) {
     throw HttpError(400, "Account was not deleted");
   }
-
+  io.of("/users").emit("userDeleted", _id);
   res.status(200).json({
     code: 200,
     status: "success",
   });
 };
 const updateProfile = async (req, res) => {
-  const { updatedProfile } = req.body;
-
-  if (updatedProfile.avatar?.fileBuffer.length === 0) {
-    profile.avatarURL = null;
-  } else if (updatedProfile.avatar?.buffer) {
-    const buffer = Buffer.from(updatedProfile.avatar.fileBuffer);
+  const { _id } = req.user;
+  const { updatedName } = req.body;
+  const profile = {};
+  profile._id = _id;
+  if (updatedName) {
+    profile.name = updatedName;
+  }
+  if (req.files.updatedAvatar) {
+    const buffer = req.files.updatedAvatar[0].buffer;
 
     const { secure_url } = await uploadImage(buffer);
+
     profile.avatarURL = secure_url;
+  } else {
+    profile.avatarURL = null;
   }
-  const { name, _id, avatarURL } = await User.findByIdAndUpdate(
-    updatedProfile._id,
-    profile
-  )
-    .select(["-password", "-googleId", "token"])
-    .lean();
+  await User.findByIdAndUpdate(_id, profile).lean();
+
+  io.of("/users").emit("userUpdated", {
+    ...profile,
+  });
   res.status(200).json({
     code: 200,
     status: "success",
-    body: {
-      updatedProfile: { name, _id, avatarURL },
+    data: {
+      ...profile,
     },
   });
 };
@@ -160,8 +152,6 @@ const updateProfile = async (req, res) => {
 module.exports = {
   getUserById: wsControllersWrapper(getUserById),
   getConversations: wsControllersWrapper(getConversations),
-  deleteUserById: wsControllersWrapper(deleteUserById),
-  updateUser: wsControllersWrapper(updateUser),
   deleteAccount: controllersWrapper(deleteAccount),
   updateProfile: controllersWrapper(updateProfile),
 };

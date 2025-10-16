@@ -16,7 +16,7 @@ const {
   isConversationGroup,
   leaveFromConversation,
   addUsersToConversation,
-} = require("../controllers/conversationsWsController.js");
+} = require("../controllers/socket/conversationWsController");
 
 const setupConversationsWebSocket = async (socket, io) => {
   const { _id } = socket.user;
@@ -54,7 +54,7 @@ const setupConversationsWebSocket = async (socket, io) => {
     async ({ conversationId, kickedUserId }) => {
       await emitToConversationMembers(
         conversationId,
-        io,
+
         { conversationId, kickedUserId },
         "kickedUserFromConversation"
       );
@@ -65,7 +65,7 @@ const setupConversationsWebSocket = async (socket, io) => {
     await addUsersToConversation(conversationId, users, _id);
     await emitToConversationMembers(
       conversationId,
-      io,
+
       { conversationId, users },
       "addedUserToConversation"
     );
@@ -79,7 +79,7 @@ const setupConversationsWebSocket = async (socket, io) => {
   socket.on("leaveFromConversation", async ({ conversationId }) => {
     await emitToConversationMembers(
       conversationId,
-      io,
+
       { conversationId, kickedUserId: _id },
       "kickedUserFromConversation"
     );
@@ -107,7 +107,7 @@ const setupConversationsWebSocket = async (socket, io) => {
       .emit("newMessage", sendedMessage);
     await emitToConversationMembers(
       conversationId,
-      io,
+
       {
         message: sendedMessage,
         status: "newLastMessage",
@@ -121,7 +121,7 @@ const setupConversationsWebSocket = async (socket, io) => {
     if (check) {
       await emitToConversationMembers(
         conversationId,
-        io,
+
         {
           message: updatedMessage,
           status: "newLastMessage",
@@ -141,7 +141,7 @@ const setupConversationsWebSocket = async (socket, io) => {
       if (messageBeforeLast) {
         await emitToConversationMembers(
           conversationId,
-          io,
+
           {
             message: messageBeforeLast,
             status: "newLastMessage",
@@ -151,7 +151,7 @@ const setupConversationsWebSocket = async (socket, io) => {
       } else {
         await emitToConversationMembers(
           conversationId,
-          io,
+
           conversationId,
           "lastMessageReseted"
         );
@@ -169,7 +169,7 @@ const setupConversationsWebSocket = async (socket, io) => {
     if (await checkIsMessageLast(messageId, conversationId)) {
       await emitToConversationMembers(
         conversationId,
-        io,
+
         {
           status: "lastMessageSeen",
           message: { conversationId },
@@ -190,7 +190,7 @@ const setupConversationsWebSocket = async (socket, io) => {
 
     await emitToConversationMembers(
       conversationId,
-      io,
+
       { conversationId, isGroup },
       "conversationDeleted"
     );

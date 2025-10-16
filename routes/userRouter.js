@@ -4,17 +4,19 @@ const validateBody = require("../helpers/validateBody.js");
 const authenticate = require("../middlewares/authenticate.js");
 
 const {
-  deleteUserById,
   updateProfile,
-} = require("../controllers/usersWsControllers.js");
+  deleteAccount,
+} = require("../controllers/rest/userControllers.js");
+const upload = require("../helpers/multerUploader.js");
 
 const userRouter = express.Router();
 
-userRouter.delete("/deleteAccount", authenticate, deleteUserById);
+userRouter.delete("/deleteAccount", authenticate, deleteAccount);
 userRouter.patch(
-  "/updateAccount",
+  "/updateProfile",
   authenticate,
-  validateBody(updateProfileSchema),
+  // validateBody(updateProfileSchema),
+  upload.fields([{ name: "updatedAvatar", maxCount: 1 }]),
   updateProfile
 );
 

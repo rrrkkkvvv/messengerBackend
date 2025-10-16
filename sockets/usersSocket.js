@@ -1,11 +1,7 @@
 const {
   createGroupConversation,
-} = require("../controllers/conversationsWsController.js");
-const {
-  getConversations,
-  deleteUserById,
-  updateUser,
-} = require("../controllers/usersWsControllers.js");
+} = require("../controllers/socket/conversationWsController.js");
+const { getConversations } = require("../controllers/rest/userControllers.js");
 
 const usersOnline = new Set();
 
@@ -26,15 +22,6 @@ const setupUsersWebSocket = async (socket) => {
       socket.join(`user_${user._id}`);
     });
 
-    socket.on("deleteUser", async () => {
-      await deleteUserById(user._id);
-      socket.broadcast.emit("userDeleted", user._id);
-    });
-
-    socket.on("updateUser", async ({ updatedProfile }) => {
-      const result = await updateUser(updatedProfile);
-      socket.broadcast.emit("userUpdated", result);
-    });
     socket.on(
       "createGroupConversation",
       async ({ name, userIds, creatorId }) => {

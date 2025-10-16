@@ -1,19 +1,14 @@
+const http = require("http");
+const { Server } = require("socket.io");
 const express = require("express");
-const cors = require("cors");
-const authRouter = require("./routes/authRouter.js");
+
 const { corsConfig } = require("./config.js");
+
 const app = express();
-app.use(cors(corsConfig));
-app.use(express.json());
 
-app.use("/auth", authRouter);
-app.use((_, res) => {
-  res.status(404).json({ message: "Route not found" });
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: corsConfig,
 });
 
-app.use((err, req, res, next) => {
-  const { status = 500, message = "Server error" } = err;
-  res.status(status).json({ message: message });
-});
-
-module.exports = app;
+module.exports = { app, io, server };

@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { getUserById } = require("../controllers/usersWsControllers.js");
+const { getUserById } = require("../controllers/rest/userControllers.js");
 const { dotenvVars } = require("../config.js");
 const { jwtSecret } = dotenvVars;
 

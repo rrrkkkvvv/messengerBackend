@@ -1,9 +1,11 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { dotenvVars } = require("../config.js");
-const HttpError = require("../helpers/HttpError.js");
-const controllersWrapper = require("../helpers/controllersWrapper.js");
-const { User } = require("../models/User.js");
+const { dotenvVars } = require("../../config.js");
+const HttpError = require("../../helpers/HttpError.js");
+const controllersWrapper = require("../../helpers/controllersWrapper.js");
+const { User } = require("../../models/User.js");
+const { io } = require("../../app.js");
+
 const { OAuth2Client } = require("google-auth-library");
 const {
   jwtSecret,
@@ -26,6 +28,16 @@ const signUp = async (req, res) => {
   const payload = { id: newUser._id };
   const token = jwt.sign(payload, jwtSecret, { expiresIn: "10h" });
   await User.findByIdAndUpdate(newUser._id, { token });
+
+  io.of("/users").emit("newUser", {
+    _id: newUser._id,
+    email: newUser.email,
+    name: newUser.name,
+    avatarURL: newUser.avatarURL,
+    conversationId: null,
+    type: "single",
+    lastMessage: null,
+  });
 
   res.status(201).json({
     code: 201,
@@ -82,6 +94,15 @@ const googleAuth = async (req, res) => {
     if (!user) {
       const payload = { email, name, avatarURL: picture, googleId: sub };
       user = await User.create(payload);
+      io.of("/users").emit("newUser", {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        avatarURL: user.avatarURL,
+        conversationId: null,
+        type: "single",
+        lastMessage: null,
+      });
     }
 
     const tokenPayload = { id: user._id };
@@ -111,7 +132,13 @@ const logout = async (req, res) => {
 };
 const refresh = async (req, res) => {
   const { _id } = req.user;
-  const user = await User.findById(_id).select("-password -token");
+  const user = await User.findById(_id).select([
+    "-password",
+    "-token",
+    "-googleId",
+    "-createdAt",
+    "-updatedAt",
+  ]);
 
   if (!user) {
     throw HttpError(404, "User not found");

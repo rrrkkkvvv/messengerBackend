@@ -1,9 +1,11 @@
-const { Conversation } = require("../models/Conversation.js");
-const { Message } = require("../models/Message.js");
+const { Conversation } = require("../../models/Conversation.js");
+const { Message } = require("../../models/Message.js");
 const mongoose = require("mongoose");
-const { User } = require("../models/User.js");
-const wsControllersWrapper = require("../helpers/wsControllersWrapper.js");
-const { uploadImage } = require("../helpers/uploadImage.js");
+const { User } = require("../../models/User.js");
+const wsControllersWrapper = require("../../helpers/wsControllersWrapper.js");
+const { uploadImage } = require("../../helpers/uploadImage.js");
+const controllersWrapper = require("../../helpers/controllersWrapper.js");
+const { io } = require("../../app.js");
 const getConversation = async (conversationId) => {
   const result = await Conversation.aggregate([
     {
@@ -30,6 +32,17 @@ const getConversation = async (conversationId) => {
               localField: "senderId",
               foreignField: "_id",
               as: "sender",
+              pipeline: [
+                {
+                  $project: {
+                    token: 0,
+                    googleId: 0,
+                    password: 0,
+                    createdAt: 0,
+                    updatedAt: 0,
+                  },
+                },
+              ],
             },
           },
           {
@@ -93,34 +106,37 @@ const getOrCreateConversation = async (membersArray) => {
   }
 };
 
-const createGroupConversation = async (name, userIds, creatorId) => {
+const createGroupConversation = async (req, res) => {
+  const { name, userIds, creatorId } = req.body;
+
   const newConversation = await Conversation.create({
     isGroup: true,
     userIds,
     name,
     creatorId,
   });
+  // io.of("/users").to(`user_${creatorId}`).emit("newGroupWithUser", {
+  //   newConversation,
+  // });
+  userIds.forEach((userId) => {
+    io.of("/users")
+      .to(`user_${userId}`)
+      .emit("newGroupWithUser", newConversation);
+  });
+  res.status(201).json({
+    code: 201,
+    status: "success",
+  });
   return newConversation;
 };
 
-const sendMessage = async ({ conversationId, message, userId }) => {
-  const messageData = {
-    senderId: userId,
-    conversationId,
-    messageText: message.messageText,
-  };
-  if (message.messageImage.fileBuffer) {
-    const buffer = Buffer.from(message.messageImage.fileBuffer);
-
-    const { secure_url } = await uploadImage(buffer);
-    messageData.messageImage = secure_url;
-  }
+const sendMessage = async (messageData) => {
   const newMessage = await Message.create(messageData);
 
   const cleanMessage = newMessage.toObject();
   const sender = await User.findById(newMessage.senderId)
     .lean()
-    .select("-password");
+    .select(["-password", "-token", "-googleId", "-createdAt", "-updatedAt"]);
   return {
     ...cleanMessage,
     sender,
@@ -179,7 +195,7 @@ const updateMessage = async (message) => {
 
   const sender = await User.findById(updatedMessage.senderId)
     .lean()
-    .select("-password");
+    .select(["-password", "-token", "-googleId", "-createdAt", "-updatedAt"]);
   return { ...updatedMessage, sender };
 };
 const checkIsMessageLast = async (_id, conversationId) => {
@@ -225,7 +241,7 @@ const deleteConversation = async (conversationId) => {
 };
 const emitToConversationMembers = async (
   conversationId,
-  io,
+
   sendData,
   title
 ) => {
@@ -265,7 +281,7 @@ const getMessageBeforeLast = async (conversationId) => {
   if (beforeLastMessage[1]) {
     const sender = await User.findById(beforeLastMessage[1].senderId)
       .lean()
-      .select("-password");
+      .select(["-password", "-token", "-googleId", "-createdAt", "-updatedAt"]);
     return { ...beforeLastMessage[1], sender };
   } else {
     return null;
@@ -291,7 +307,7 @@ module.exports = {
   checkIsMessageLast: wsControllersWrapper(checkIsMessageLast),
   getMessageBeforeLast: wsControllersWrapper(getMessageBeforeLast),
   sendTypingStatusUpdate: wsControllersWrapper(sendTypingStatusUpdate),
-  createGroupConversation: wsControllersWrapper(createGroupConversation),
+  createGroupConversation: controllersWrapper(createGroupConversation),
   getConversation: wsControllersWrapper(getConversation),
   kickUserFromConversation: wsControllersWrapper(kickUserFromConversation),
   addUsersToConversation: wsControllersWrapper(addUsersToConversation),
