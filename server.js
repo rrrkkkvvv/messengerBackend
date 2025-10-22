@@ -16,10 +16,10 @@ const { port, host, dbHost } = dotenvVars;
 
 app.use(cors(corsConfig));
 
+app.use(express.json());
 app.use("/auth", authRouter);
 app.use("/users", userRouter);
 app.use("/conversations", conversationRouter);
-app.use(express.json());
 app.use((_, res) => {
   res.status(404).json({ message: "Route not found" });
 });

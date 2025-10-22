@@ -89,7 +89,6 @@ const removeConversation = async (req, res) => {
 };
 const sendMessage = async (req, res) => {
   const { conversationId, messageText } = req.body;
-
   const userId = req.user._id;
   let messageImageUrl = "";
   if (req.files.messageImage) {
@@ -105,11 +104,6 @@ const sendMessage = async (req, res) => {
     messageImage: messageImageUrl,
   };
   const sendedMessage = await sendMessageService(messageData);
-
-  io.of("conversations")
-    .to(`conversation_${conversationId}`)
-    .emit("newMessage", sendedMessage);
-
   await emitToConversationMembers(
     conversationId,
 
@@ -119,16 +113,36 @@ const sendMessage = async (req, res) => {
     },
     "lastMessageUpdated"
   );
+  io.of("conversations")
+    .to(`conversation_${conversationId}`)
+    .emit("newMessage", { ...sendedMessage });
 
-  res.status(201).json({ status: "success", data: sendedMessage });
+  res.status(201).json({
+    status: "success",
+    data: sendedMessage,
+  });
 };
 
 const updateMessage = async (req, res) => {
-  const { conversationId, message } = req.body;
+  const { conversationId, messageText, messageId } = req.body;
 
-  const updatedMessage = await updateMessageService(message);
+  let messageImageUrl = "";
+  if (req.files.messageImage) {
+    const buffer = req.files.messageImage[0].buffer;
 
-  const isLast = await checkIsMessageLast(message._id, conversationId);
+    const { secure_url } = await uploadImage(buffer);
+    messageImageUrl = secure_url;
+  }
+  const messageData = {
+    _id: messageId,
+    conversationId,
+    messageText,
+    messageImage: messageImageUrl,
+  };
+
+  const updatedMessage = await updateMessageService(messageData);
+
+  const isLast = await checkIsMessageLast(updatedMessage._id, conversationId);
   if (isLast) {
     await emitToConversationMembers(
       conversationId,
@@ -145,7 +159,10 @@ const updateMessage = async (req, res) => {
     .to(`conversation_${conversationId}`)
     .emit("messageUpdated", updatedMessage);
 
-  res.status(200).json({ status: "success", data: updatedMessage });
+  res.status(200).json({
+    status: "success",
+    data: updatedMessage,
+  });
 };
 
 const deleteMessage = async (req, res, next) => {

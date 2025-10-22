@@ -177,14 +177,7 @@ const leaveFromConversation = async (conversationId, currentUserId) => {
     $pull: { userIds: currentUserId },
   });
 };
-const updateMessage = async (message) => {
-  const messageData = { ...message };
-  if (message.messageImage?.fileBuffer) {
-    const buffer = Buffer.from(message.messageImage.fileBuffer);
-
-    const { secure_url } = await uploadImage(buffer);
-    messageData.messageImage = secure_url;
-  }
+const updateMessage = async (messageData) => {
   const updatedMessage = await Message.findByIdAndUpdate(
     messageData._id,
     { ...messageData, $set: { editedAt: new Date() } },
