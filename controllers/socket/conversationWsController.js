@@ -217,17 +217,8 @@ const setSeenMessage = async (userId, messageId) => {
   return updatedMessage;
 };
 const updateGroupConversation = async (updatedGroupInfo) => {
-  let groupInfo = { ...updatedGroupInfo };
-  if (updatedGroupInfo.avatar?.fileBuffer.length === 0) {
-    groupInfo.avatarURL = null;
-  } else if (updatedGroupInfo.avatar?.fileBuffer) {
-    const buffer = Buffer.from(updatedGroupInfo.avatar.fileBuffer);
-
-    const { secure_url } = await uploadImage(buffer);
-    groupInfo.avatarURL = secure_url;
-  }
-  await Conversation.findByIdAndUpdate(updatedGroupInfo._id, groupInfo);
-  return groupInfo;
+  await Conversation.findByIdAndUpdate(updatedGroupInfo._id, updatedGroupInfo);
+  return updatedGroupInfo;
 };
 const deleteConversation = async (conversationId) => {
   await Conversation.findByIdAndDelete(conversationId);

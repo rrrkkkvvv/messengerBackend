@@ -62,9 +62,37 @@ const leaveConversation = async (req, res) => {
 
   res.status(200).json({ status: "success" });
 };
+const checkIsUserCreator = async ({ userId, conversationId }) => {
+  const conversation = await Conversation.findById(conversationId);
 
+  return conversation.creatorId.toString() === userId.toString();
+};
 const updateGroup = async (req, res) => {
-  const updatedGroupInfo = req.body;
+  const { creatorId, _id, name } = req.body;
+
+  const userId = req.user._id;
+  if (!(await checkIsUserCreator({ userId, conversationId: _id }))) {
+    res.status(403).json({
+      status: "failed",
+      data: { message: "User is not creator of group" },
+    });
+    return;
+  }
+  let avatarURL = "";
+  if (req.files.avatar) {
+    const buffer = req.files.avatar[0].buffer;
+
+    const { secure_url } = await uploadImage(buffer);
+    avatarURL = secure_url;
+  } else {
+    avatarURL = null;
+  }
+  const updatedGroupInfo = {
+    _id,
+    name,
+    creatorId,
+    avatarURL,
+  };
 
   const result = await updateGroupConversation(updatedGroupInfo);
   await sendGroupUpdate(io, result);

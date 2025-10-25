@@ -61,7 +61,9 @@ conversationRouter.post(
 conversationRouter.put(
   "/updateGroup",
   authenticate,
-  validateBody(updateGroupConversationSchema),
+  upload.fields([{ name: "avatar", maxCount: 1 }]),
+
+  // validateBody(updateGroupConversationSchema),
   updateGroup
 );
 
