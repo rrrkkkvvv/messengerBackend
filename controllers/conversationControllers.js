@@ -1,14 +1,16 @@
-const { io } = require("../../app");
-const controllersWrapper = require("../../helpers/controllersWrapper");
-const { uploadImage } = require("../../helpers/uploadImage");
-const { Conversation } = require("../../models/Conversation");
+const { io } = require("../app");
+const controllersWrapper = require("../helpers/controllersWrapper");
+const { uploadImage } = require("../helpers/uploadImage");
+const { Conversation } = require("../models/Conversation");
 const {
-  sendMessage: sendMessageService,
+  createMessage,
   updateMessage: updateMessageService,
   deleteMessage: deleteMessageService,
   checkIsMessageLast,
   getMessageBeforeLast,
-} = require("../socket/conversationWsController");
+  getConversation,
+  getOrCreateConversation,
+} = require("../services/conversationService");
 const {
   kickUserFromConversation,
   addUsersToConversation,
@@ -17,8 +19,39 @@ const {
   updateGroupConversation,
   sendGroupUpdate,
   deleteConversation,
-} = require("../socket/conversationWsController");
+} = require("../services/conversationService");
 
+const getConversationData = async (req, res) => {
+  const { _id, isGroup } = req.body;
+  const userId = req.user._id;
+  if (!_id) {
+    res.status(404).json({ status: "failed" });
+
+    return;
+  }
+  if (isGroup) {
+    const conversation = await getConversation(_id);
+    res.status(200).json({ status: "success", data: conversation });
+  } else {
+    const { status, conversation } = await getOrCreateConversation([
+      userId,
+      _id,
+    ]);
+
+    if (status == "created") {
+      conversation.userIds.forEach((_id) => {
+        const otherUserId = conversation.userIds.find(
+          (otherId) => otherId !== _id
+        );
+        io.of("/users").to(`user_${_id}`).emit("newConversationWithUser", {
+          userId: otherUserId,
+          conversationId: conversation._id,
+        });
+      });
+    }
+    res.status(200).json({ status: "success", data: conversation });
+  }
+};
 const kickUser = async (req, res) => {
   const { conversationId, kickedUserId } = req.body;
   const userId = req.user._id;
@@ -66,6 +99,29 @@ const checkIsUserCreator = async ({ userId, conversationId }) => {
   const conversation = await Conversation.findById(conversationId);
 
   return conversation.creatorId.toString() === userId.toString();
+};
+const createGroupConversation = async (req, res) => {
+  const { name, userIds, creatorId } = req.body;
+
+  const newConversation = await Conversation.create({
+    isGroup: true,
+    userIds,
+    name,
+    creatorId,
+  });
+  // io.of("/users").to(`user_${creatorId}`).emit("newGroupWithUser", {
+  //   newConversation,
+  // });
+  userIds.forEach((userId) => {
+    io.of("/users")
+      .to(`user_${userId}`)
+      .emit("newGroupWithUser", newConversation);
+  });
+  res.status(201).json({
+    code: 201,
+    status: "success",
+  });
+  return newConversation;
 };
 const updateGroup = async (req, res) => {
   const { creatorId, _id, name } = req.body;
@@ -126,24 +182,13 @@ const sendMessage = async (req, res) => {
     messageImageUrl = secure_url;
   }
   const messageData = {
+    isCallInfo: false,
     conversationId,
     messageText,
     senderId: userId,
     messageImage: messageImageUrl,
   };
-  const sendedMessage = await sendMessageService(messageData);
-  await emitToConversationMembers(
-    conversationId,
-
-    {
-      message: sendedMessage,
-      status: "newLastMessage",
-    },
-    "lastMessageUpdated"
-  );
-  io.of("conversations")
-    .to(`conversation_${conversationId}`)
-    .emit("newMessage", { ...sendedMessage });
+  const sendedMessage = await createMessage(messageData);
 
   res.status(201).json({
     status: "success",
@@ -169,23 +214,6 @@ const updateMessage = async (req, res) => {
   };
 
   const updatedMessage = await updateMessageService(messageData);
-
-  const isLast = await checkIsMessageLast(updatedMessage._id, conversationId);
-  if (isLast) {
-    await emitToConversationMembers(
-      conversationId,
-
-      {
-        message: updatedMessage,
-        status: "newLastMessage",
-      },
-      "lastMessageUpdated"
-    );
-  }
-
-  io.of("conversations")
-    .to(`conversation_${conversationId}`)
-    .emit("messageUpdated", updatedMessage);
 
   res.status(200).json({
     status: "success",
@@ -221,11 +249,13 @@ const deleteMessage = async (req, res, next) => {
 
   io.of("conversations")
     .to(`conversation_${conversationId}`)
-    .emit("messageDeleted", messageId);
+    .emit("messageDeleted", { conversationId, messageId });
 
   res.status(200).json({ status: "success", data: { messageId } });
 };
 module.exports = {
+  getConversationData: controllersWrapper(getConversationData),
+  createGroupConversation: controllersWrapper(createGroupConversation),
   addUsers: controllersWrapper(addUsers),
   kickUser: controllersWrapper(kickUser),
   leaveConversation: controllersWrapper(leaveConversation),

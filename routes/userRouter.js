@@ -6,7 +6,7 @@ const authenticate = require("../middlewares/authenticate.js");
 const {
   updateProfile,
   deleteAccount,
-} = require("../controllers/rest/userControllers.js");
+} = require("../controllers/userControllers.js");
 const upload = require("../helpers/multerUploader.js");
 
 const userRouter = express.Router();

@@ -1,25 +1,18 @@
 const {
   getOrCreateConversation,
-  sendMessage,
-  updateMessage,
-  deleteConversation,
-  deleteMessage,
+
   setSeenMessage,
   emitToConversationMembers,
   checkIsMessageLast,
-  getMessageBeforeLast,
   sendTypingStatusUpdate,
   getConversation,
-  updateGroupConversation,
-  sendGroupUpdate,
-  kickUserFromConversation,
-  isConversationGroup,
-  leaveFromConversation,
-  addUsersToConversation,
-} = require("../controllers/socket/conversationWsController");
+} = require("../services/conversationService");
 
 const setupConversationsWebSocket = async (socket, io) => {
   const { _id } = socket.user;
+  // socket.on("joinConversation", async ({ _id }) => {
+  //   socket.join(`conversation_${_id}`);
+  // });
   socket.on("joinConversation", async ({ userId, isGroup, conversationId }) => {
     if (isGroup) {
       const conversation = await getConversation(conversationId);
@@ -48,122 +41,13 @@ const setupConversationsWebSocket = async (socket, io) => {
       }
     }
   });
-
-  socket.on(
-    "kickUserFromConversation",
-    async ({ conversationId, kickedUserId }) => {
-      await emitToConversationMembers(
-        conversationId,
-
-        { conversationId, kickedUserId },
-        "kickedUserFromConversation"
-      );
-      await kickUserFromConversation(conversationId, kickedUserId, _id);
-    }
-  );
-  socket.on("addUsersToConversation", async ({ conversationId, users }) => {
-    await addUsersToConversation(conversationId, users, _id);
-    await emitToConversationMembers(
-      conversationId,
-
-      { conversationId, users },
-      "addedUserToConversation"
-    );
-    const conversation = await getConversation(conversationId);
-    users.forEach((userId) => {
-      io.of("/users")
-        .to(`user_${userId}`)
-        .emit("newGroupWithUser", conversation);
-    });
-  });
-  socket.on("leaveFromConversation", async ({ conversationId }) => {
-    await emitToConversationMembers(
-      conversationId,
-
-      { conversationId, kickedUserId: _id },
-      "kickedUserFromConversation"
-    );
-    await leaveFromConversation(conversationId, _id);
-  });
-  socket.on("updateGroupConversation", async ({ updatedGroupInfo }) => {
-    const result = await updateGroupConversation(updatedGroupInfo);
-    await sendGroupUpdate(io, result);
-  });
   socket.on("userTyping", async ({ conversationId }) => {
     await sendTypingStatusUpdate(io, conversationId, _id, true);
   });
   socket.on("userStopTyping", async ({ conversationId }) => {
     await sendTypingStatusUpdate(io, conversationId, _id, false);
   });
-  socket.on("sendMessage", async ({ conversationId, message }) => {
-    const sendedMessage = await sendMessage({
-      conversationId,
-      message,
-      userId: _id,
-    });
-    socket.emit("newMessage", sendedMessage);
-    socket
-      .to(`conversation_${conversationId}`)
-      .emit("newMessage", sendedMessage);
-    await emitToConversationMembers(
-      conversationId,
 
-      {
-        message: sendedMessage,
-        status: "newLastMessage",
-      },
-      "lastMessageUpdated"
-    );
-  });
-  socket.on("updateMessage", async ({ conversationId, message }) => {
-    const updatedMessage = await updateMessage(message);
-    const check = await checkIsMessageLast(message._id, conversationId);
-    if (check) {
-      await emitToConversationMembers(
-        conversationId,
-
-        {
-          message: updatedMessage,
-          status: "newLastMessage",
-        },
-        "lastMessageUpdated"
-      );
-    }
-
-    socket.emit("messageUpdated", updatedMessage);
-    socket
-      .to(`conversation_${conversationId}`)
-      .emit("messageUpdated", updatedMessage);
-  });
-  socket.on("deleteMessage", async ({ conversationId, messageId }) => {
-    if (await checkIsMessageLast(messageId, conversationId)) {
-      const messageBeforeLast = await getMessageBeforeLast(conversationId);
-      if (messageBeforeLast) {
-        await emitToConversationMembers(
-          conversationId,
-
-          {
-            message: messageBeforeLast,
-            status: "newLastMessage",
-          },
-          "lastMessageUpdated"
-        );
-      } else {
-        await emitToConversationMembers(
-          conversationId,
-
-          conversationId,
-          "lastMessageReseted"
-        );
-      }
-    }
-    await deleteMessage(messageId);
-    socket.emit("messageDeleted", messageId);
-
-    socket
-      .to(`conversation_${conversationId}`)
-      .emit("messageDeleted", messageId);
-  });
   socket.on("setSeenMessage", async ({ conversationId, userId, messageId }) => {
     const updatedMessage = await setSeenMessage(userId, messageId);
     if (await checkIsMessageLast(messageId, conversationId)) {
@@ -185,17 +69,7 @@ const setupConversationsWebSocket = async (socket, io) => {
       .to(`conversation_${conversationId}`)
       .emit("messageUpdated", updatedMessage);
   });
-  socket.on("deleteConversation", async ({ conversationId }) => {
-    const isGroup = await isConversationGroup(conversationId);
 
-    await emitToConversationMembers(
-      conversationId,
-
-      { conversationId, isGroup },
-      "conversationDeleted"
-    );
-    await deleteConversation(conversationId);
-  });
   socket.on("leaveConversation", ({ conversationId }) => {
     socket.leave(`conversation_${conversationId}`);
   });

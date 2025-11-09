@@ -1,10 +1,10 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { dotenvVars } = require("../../config.js");
-const HttpError = require("../../helpers/HttpError.js");
-const controllersWrapper = require("../../helpers/controllersWrapper.js");
-const { User } = require("../../models/User.js");
-const { io } = require("../../app.js");
+const { dotenvVars } = require("../config.js");
+const HttpError = require("../helpers/HttpError.js");
+const controllersWrapper = require("../helpers/controllersWrapper.js");
+const { User } = require("../models/User.js");
+const { io } = require("../app.js");
 
 const { OAuth2Client } = require("google-auth-library");
 const {

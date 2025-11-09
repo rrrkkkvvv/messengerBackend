@@ -1,10 +1,10 @@
-const { io } = require("../../app.js");
-const controllersWrapper = require("../../helpers/controllersWrapper.js");
-const { uploadImage } = require("../../helpers/uploadImage.js");
-const wsControllersWrapper = require("../../helpers/wsControllersWrapper.js");
-const { Conversation } = require("../../models/Conversation.js");
-const { Message } = require("../../models/Message.js");
-const { User } = require("../../models/User.js");
+const { io } = require("../app.js");
+const controllersWrapper = require("../helpers/controllersWrapper.js");
+const { uploadImage } = require("../helpers/uploadImage.js");
+const serviceWrapper = require("../helpers/serviceWrapper.js");
+const { Conversation } = require("../models/Conversation.js");
+const { Message } = require("../models/Message.js");
+const { User } = require("../models/User.js");
 
 const getUserById = async (id) => {
   return await User.findById(id);
@@ -28,7 +28,7 @@ const getConversations = async (userId) => {
       .sort({ sentAt: -1 })
       .lean();
     const otherUserId = conversation.userIds.find(
-      (id) => id.toString() !== userId
+      (id) => id.toString() !== userId.toString()
     );
     if (lastMessage) {
       lastMessages[otherUserId] = {
@@ -44,7 +44,7 @@ const getConversations = async (userId) => {
   }
 
   const usersWithLastMessage = otherUsers.map((user) => {
-    const lastMessage = lastMessages[user._id];
+    const lastMessage = lastMessages[user._id.toString()];
     return {
       ...user,
       type: "single",
@@ -150,8 +150,8 @@ const updateProfile = async (req, res) => {
 };
 
 module.exports = {
-  getUserById: wsControllersWrapper(getUserById),
-  getConversations: wsControllersWrapper(getConversations),
+  getUserById: serviceWrapper(getUserById),
+  getConversations: serviceWrapper(getConversations),
   deleteAccount: controllersWrapper(deleteAccount),
   updateProfile: controllersWrapper(updateProfile),
 };

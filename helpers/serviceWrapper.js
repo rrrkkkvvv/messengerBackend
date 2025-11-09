@@ -1,4 +1,4 @@
-const wsControllersWrapper = (controller) => {
+const serviceWrapper = (controller) => {
   return async (...args) => {
     try {
       const result = await controller(...args);
@@ -8,4 +8,4 @@ const wsControllersWrapper = (controller) => {
     }
   };
 };
-module.exports = wsControllersWrapper;
+module.exports = serviceWrapper;

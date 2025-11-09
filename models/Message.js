@@ -6,6 +6,24 @@ const handleMongooseError = require("../helpers/handleMongooseError.js");
 
 const messageSchema = new Schema(
   {
+    isCallInfo: {
+      type: Boolean,
+    },
+    isAnswered: {
+      type: Boolean,
+    },
+    isEnded: {
+      type: Boolean,
+      required: () => {
+        return this.isCallInfo && this.isAnswered;
+      },
+    },
+    duration: {
+      type: Number,
+      required: () => {
+        return this.isCallInfo && this.isEnded;
+      },
+    },
     messageText: {
       type: String,
     },
@@ -14,17 +32,19 @@ const messageSchema = new Schema(
       default: null,
       validate: {
         validator: function () {
-          return this.messageText || this.messageImage;
+          return this.isCallInfo || this.messageText || this.messageImage;
         },
-        message: "Either messageText or messageImage is required.",
+        message: "MessageText or messageImage is required.",
       },
     },
-    seenIds: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "user",
-      },
-    ],
+    seenIds: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "user",
+        },
+      ],
+    },
     conversationId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "conversation",
@@ -43,6 +63,7 @@ const messageSchema = new Schema(
     versionKey: false,
   }
 );
+
 messageSchema.pre("save", (next) => {
   if (this.isNew) {
     this.editedAt = undefined;

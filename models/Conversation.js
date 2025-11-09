@@ -37,6 +37,10 @@ const conversationSchema = new Schema(
 );
 
 conversationSchema.post("save", handleMongooseError);
+const getConversationDataSchema = Joi.object({
+  isGroup: Joi.boolean(),
+  _id: Joi.string().required(),
+});
 const createGroupConversationSchema = Joi.object({
   userIds: Joi.array().items(Joi.string()).min(1).required(),
 
@@ -140,4 +144,5 @@ module.exports = {
   deleteMessageSchema,
   updateMessageSchema,
   sendMessageSchema,
+  getConversationDataSchema,
 };

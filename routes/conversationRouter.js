@@ -3,9 +3,6 @@ const { updateProfileSchema } = require("../models/User.js");
 const validateBody = require("../helpers/validateBody.js");
 const authenticate = require("../middlewares/authenticate.js");
 const {
-  createGroupConversation,
-} = require("../controllers/socket/conversationWsController.js");
-const {
   createGroupConversationSchema,
   updateGroupConversationSchema,
   leaveConversationSchema,
@@ -15,6 +12,7 @@ const {
   sendMessageSchema,
   updateMessageSchema,
   deleteMessageSchema,
+  getConversationDataSchema,
 } = require("../models/Conversation.js");
 const upload = require("../helpers/multerUploader.js");
 
@@ -27,10 +25,25 @@ const {
   sendMessage,
   updateMessage,
   deleteMessage,
-} = require("../controllers/rest/conversationControllers.js");
+  createGroupConversation,
+  getConversationData,
+} = require("../controllers/conversationControllers.js");
 
 const conversationRouter = express.Router();
 
+conversationRouter.get(
+  "/getData",
+  validateBody(getConversationDataSchema),
+  authenticate,
+
+  getConversationData
+);
+conversationRouter.post(
+  "/createGroupConversation",
+  validateBody(createGroupConversationSchema),
+  authenticate,
+  createGroupConversation
+);
 conversationRouter.post(
   "/createGroupConversation",
   validateBody(createGroupConversationSchema),

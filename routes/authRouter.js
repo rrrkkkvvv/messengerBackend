@@ -12,7 +12,7 @@ const {
   signUp,
   refresh,
   googleAuth,
-} = require("../controllers/rest/authControllers.js");
+} = require("../controllers/authControllers.js");
 
 const authRouter = express.Router();
 
