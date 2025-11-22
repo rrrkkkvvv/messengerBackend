@@ -24,18 +24,22 @@ const messageSchema = new Schema(
         return this.isCallInfo && this.isEnded;
       },
     },
+    isAudioMessage: {
+      type: Boolean,
+    },
+    audioMessage: {
+      type: String,
+      default: null,
+      required: () => {
+        return this.isAudioMessage;
+      },
+    },
     messageText: {
       type: String,
     },
     messageImage: {
       type: String,
       default: null,
-      validate: {
-        validator: function () {
-          return this.isCallInfo || this.messageText || this.messageImage;
-        },
-        message: "MessageText or messageImage is required.",
-      },
     },
     seenIds: {
       type: [

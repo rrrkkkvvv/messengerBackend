@@ -1,6 +1,6 @@
 const { io } = require("../app.js");
 const controllersWrapper = require("../helpers/controllersWrapper.js");
-const { uploadImage } = require("../helpers/uploadImage.js");
+const { streamUpload } = require("../helpers/streamUpload.js");
 const serviceWrapper = require("../helpers/serviceWrapper.js");
 const { Conversation } = require("../models/Conversation.js");
 const { Message } = require("../models/Message.js");
@@ -129,7 +129,7 @@ const updateProfile = async (req, res) => {
   if (req.files.updatedAvatar) {
     const buffer = req.files.updatedAvatar[0].buffer;
 
-    const { secure_url } = await uploadImage(buffer);
+    const { secure_url } = await streamUpload(buffer, "image");
 
     profile.avatarURL = secure_url;
   } else {

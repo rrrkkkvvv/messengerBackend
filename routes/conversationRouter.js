@@ -89,7 +89,10 @@ conversationRouter.delete(
 conversationRouter.post(
   "/sendMessage",
   authenticate,
-  upload.fields([{ name: "messageImage", maxCount: 1 }]),
+  upload.fields([
+    { name: "messageImage", maxCount: 1 },
+    { name: "audioMessage", maxCount: 1 },
+  ]),
 
   // validateBody(sendMessageSchema),
   sendMessage

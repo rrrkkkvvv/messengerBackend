@@ -1,6 +1,6 @@
 const { io } = require("../app");
 const controllersWrapper = require("../helpers/controllersWrapper");
-const { uploadImage } = require("../helpers/uploadImage");
+const { streamUpload } = require("../helpers/streamUpload");
 const { Conversation } = require("../models/Conversation");
 const {
   createMessage,
@@ -138,7 +138,7 @@ const updateGroup = async (req, res) => {
   if (req.files.avatar) {
     const buffer = req.files.avatar[0].buffer;
 
-    const { secure_url } = await uploadImage(buffer);
+    const { secure_url } = await streamUpload(buffer, "image");
     avatarURL = secure_url;
   } else {
     avatarURL = null;
@@ -174,43 +174,67 @@ const removeConversation = async (req, res) => {
 const sendMessage = async (req, res) => {
   const { conversationId, messageText } = req.body;
   const userId = req.user._id;
-  let messageImageUrl = "";
-  if (req.files.messageImage) {
-    const buffer = req.files.messageImage[0].buffer;
 
-    const { secure_url } = await uploadImage(buffer);
-    messageImageUrl = secure_url;
+  if (req.files.audioMessage) {
+    const buffer = req.files.audioMessage[0].buffer;
+
+    const { secure_url } = await streamUpload(buffer, "video");
+    audioMessageURL = secure_url;
+
+    const messageData = {
+      isCallInfo: false,
+      isAudioMessage: true,
+      audioMessage: audioMessageURL,
+      conversationId,
+      senderId: userId,
+    };
+    const sendedMessage = await createMessage(messageData);
+
+    res.status(201).json({
+      status: "success",
+      data: sendedMessage,
+    });
+  } else {
+    let messageImageURL = "";
+    if (req.files.messageImage) {
+      const buffer = req.files.messageImage[0].buffer;
+
+      const { secure_url } = await streamUpload(buffer, "image");
+      messageImageURL = secure_url;
+    }
+    const messageData = {
+      isAudioMessage: false,
+
+      isCallInfo: false,
+      conversationId,
+      messageText,
+      senderId: userId,
+      messageImage: messageImageURL,
+    };
+    const sendedMessage = await createMessage(messageData);
+
+    res.status(201).json({
+      status: "success",
+      data: sendedMessage,
+    });
   }
-  const messageData = {
-    isCallInfo: false,
-    conversationId,
-    messageText,
-    senderId: userId,
-    messageImage: messageImageUrl,
-  };
-  const sendedMessage = await createMessage(messageData);
-
-  res.status(201).json({
-    status: "success",
-    data: sendedMessage,
-  });
 };
 
 const updateMessage = async (req, res) => {
   const { conversationId, messageText, messageId } = req.body;
 
-  let messageImageUrl = "";
+  let messageImageURL = "";
   if (req.files.messageImage) {
     const buffer = req.files.messageImage[0].buffer;
 
-    const { secure_url } = await uploadImage(buffer);
-    messageImageUrl = secure_url;
+    const { secure_url } = await streamUpload(buffer, "image");
+    messageImageURL = secure_url;
   }
   const messageData = {
     _id: messageId,
     conversationId,
     messageText,
-    messageImage: messageImageUrl,
+    messageImage: messageImageURL,
   };
 
   const updatedMessage = await updateMessageService(messageData);
