@@ -11,6 +11,17 @@ const {
   jwtSecret,
   googleClient: { googleClientId },
 } = dotenvVars;
+
+const getUserDataById = async (_id) => {
+  const user = await User.findById(_id).select([
+    "-password",
+    "-token",
+    "-googleId",
+    "-createdAt",
+    "-updatedAt",
+  ]);
+  return user;
+};
 const signUp = async (req, res) => {
   const { email, password } = req.body;
 
@@ -38,14 +49,16 @@ const signUp = async (req, res) => {
     type: "single",
     lastMessage: null,
   });
-
+  const userData = await getUserDataById(newUser._id);
+  if (!userData) {
+    throw HttpError(404, "User not found");
+  }
   res.status(201).json({
     code: 201,
     status: "success",
     data: {
       token: token,
-      email: newUser.email,
-      name: newUser.name,
+      user: userData,
     },
   });
 };
@@ -54,10 +67,10 @@ const signIn = async (req, res) => {
   const user = await User.findOne({ email: email });
 
   if (!user) {
-    throw HttpError(401, "Email or password invalid");
+    throw HttpError(404, "Not found user");
   }
 
-  const passwordCompare = await bcrypt.compare(password, user.password);
+  const passwordCompare = bcrypt.compare(password, user.password);
   if (!passwordCompare) {
     throw HttpError(401, "Email or password invalid");
   }
@@ -65,11 +78,16 @@ const signIn = async (req, res) => {
   const payload = { id: user._id };
   const token = jwt.sign(payload, jwtSecret, { expiresIn: "10h" });
   await User.findByIdAndUpdate(user._id, { token });
+  const userData = await getUserDataById(user._id);
+  if (!userData) {
+    throw HttpError(404, "User not found");
+  }
   res.status(200).json({
     code: 200,
     status: "success",
     data: {
       token: token,
+      user: userData,
     },
   });
 };
@@ -132,14 +150,7 @@ const logout = async (req, res) => {
 };
 const refresh = async (req, res) => {
   const { _id } = req.user;
-  const user = await User.findById(_id).select([
-    "-password",
-    "-token",
-    "-googleId",
-    "-createdAt",
-    "-updatedAt",
-  ]);
-
+  const user = await getUserDataById(_id);
   if (!user) {
     throw HttpError(404, "User not found");
   }
