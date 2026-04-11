@@ -11,12 +11,7 @@ public record User(
         @NotNull
         String name,
         @Nullable
-        String avatarUrl,
-        @Nullable
-        String token,
-        @Nullable
-        String googleId,
-        @Nullable
-        String password
+        String avatarUrl
+
 ) {
 }

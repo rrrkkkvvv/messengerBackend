@@ -46,7 +46,14 @@ public class UserEntity {
         this.googleId = googleId;
         this.password = password;
     }
-
+    public UserEntity( String email, String name,  String password) {
+        this.email = email;
+        this.name = name;
+        this.avatarUrl = null;
+        this.token = null;
+        this.googleId = null;
+        this.password = password;
+    }
     public Long getId() {
         return id;
     }

@@ -1,0 +1,57 @@
+package com.example.messenger.model.conversation;
+
+import com.example.messenger.model.message.MessageEntity;
+import com.example.messenger.model.user.UserEntity;
+import jakarta.persistence.*;
+
+import java.util.List;
+
+@Entity
+@Table(name = "conversations")
+public class ConversationEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private boolean isGroup;
+    private String name;
+
+    private String avatarUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    public UserEntity owner;
+
+    @ManyToMany
+    @JoinTable(
+            name = "conversation_members",
+            joinColumns = @JoinColumn(name = "conversation_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    public List<UserEntity> members;
+
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "last_message_id")
+    private MessageEntity lastMessage;
+
+
+    public Long getId() { return id; }
+    public MessageEntity getLastMessage() { return lastMessage; }
+    public void setLastMessage(MessageEntity message) { this.lastMessage = message; }
+
+    public boolean isGroup() {
+        return isGroup;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+
+
+}

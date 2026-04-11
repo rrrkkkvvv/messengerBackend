@@ -1,7 +1,8 @@
 package com.example.messenger.controller;
 
+import com.example.messenger.model.message.Message;
 import com.example.messenger.model.message.MessageEntity;
-import com.example.messenger.model.user.CreateUser;
+import com.example.messenger.model.user.SignUpRequest;
 import com.example.messenger.model.user.User;
 import com.example.messenger.model.user.UserEntity;
 import com.example.messenger.repository.MessageRepository;
@@ -12,8 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.util.Date;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/")
@@ -28,7 +28,7 @@ public class TestController {
     }
     @PostMapping("/addUser")
     public ResponseEntity<User> addUser(
-            @RequestBody CreateUser request
+            @RequestBody SignUpRequest request
             ){
 
         UserEntity userEntity = new UserEntity(
@@ -44,25 +44,44 @@ public class TestController {
                 savedUserEntity.getId(),
                 savedUserEntity.getEmail(),
                 savedUserEntity.getName(),
-                savedUserEntity.getAvatarUrl(),
-                savedUserEntity.getToken(),
-                savedUserEntity.getGoogleId(),
-                savedUserEntity.getPassword()
-                );
+                savedUserEntity.getAvatarUrl()
+        );
 
         log.info("user with that email was added to db: "+user.email());
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 
     @PostMapping("/addMessage")
-    public ResponseEntity<User> addMessage(
+    public ResponseEntity<Message> addMessage(
 
     ){
-        UserEntity userEntity = userRepository.findById(1L).orElseThrow();
+        messageRepository.markSeen(1L,1L);
 
-        MessageEntity messageEntity = new MessageEntity( "message1", userEntity);
+        Optional< MessageEntity> msgWithSeen = messageRepository.findWithSeenUsers(1L);
+        if(msgWithSeen.isEmpty()){
+            throw  new IllegalArgumentException();
+        }
 
 
+        Message message =  new Message(
+                msgWithSeen.get().getId(),
+                msgWithSeen.get().isCallInfo(),
+                msgWithSeen.get().isAnswered(),
+                msgWithSeen.get().isEnded(),
+                msgWithSeen.get().getDuration(),
+                msgWithSeen.get().isAudioMessage(),
+                msgWithSeen.get().getAudioMessage(),
+                msgWithSeen.get().getMessageText(),
+                msgWithSeen.get().getMessageImageUrl(),
+                msgWithSeen.get().getEditedAt(),
+                msgWithSeen.get().getSeenUsers()
+
+            );
+
+
+
+
+        return ResponseEntity.status(HttpStatus.OK).body(message);
 
     }
 }
