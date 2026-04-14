@@ -1,19 +1,19 @@
 package com.example.messenger.model.user;
 
-import com.example.messenger.model.message.MessageEntity;
+
+import com.example.messenger.util.PatternConstants;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
-import java.util.HashSet;
-import java.util.Set;
+
 
 @Entity
 @Table(name="users")
 public class UserEntity {
 
-     private static final String EMAIL_PATTERN = "[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+    private static final String EMAIL_PATTERN = PatternConstants.EMAIL;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,8 +26,7 @@ public class UserEntity {
     private String name;
     @Nullable
     private String avatarUrl;
-    @Nullable
-    private String token;
+
     @Nullable
     private String googleId;
     @Nullable
@@ -38,11 +37,10 @@ public class UserEntity {
 
     }
 
-    public UserEntity( String email, String name, String avatarUrl, String token, String googleId, String password) {
+    public UserEntity( String email, String name, String avatarUrl, String googleId, String password) {
         this.email = email;
         this.name = name;
         this.avatarUrl = avatarUrl;
-        this.token = token;
         this.googleId = googleId;
         this.password = password;
     }
@@ -50,7 +48,6 @@ public class UserEntity {
         this.email = email;
         this.name = name;
         this.avatarUrl = null;
-        this.token = null;
         this.googleId = null;
         this.password = password;
     }
@@ -69,11 +66,6 @@ public class UserEntity {
     @Nullable
     public String getAvatarUrl() {
         return avatarUrl;
-    }
-
-    @Nullable
-    public String getToken() {
-        return token;
     }
 
     @Nullable

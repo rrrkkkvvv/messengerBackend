@@ -3,11 +3,9 @@ package com.example.messenger.model.user;
 import com.example.messenger.util.PatternConstants;
 import jakarta.validation.constraints.Pattern;
 
-public record SignUpRequest(
+public record SignInRequest(
         @Pattern(regexp = PatternConstants.EMAIL)
         String email,
-        String name,
         String password
 ) {
-
 }

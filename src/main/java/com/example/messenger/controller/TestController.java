@@ -36,7 +36,6 @@ public class TestController {
                 request.name(),
                 null,
                 null,
-                null,
                 request.password()
         );
         UserEntity savedUserEntity =userRepository.save(userEntity);
