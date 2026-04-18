@@ -1,4 +1,5 @@
 security:
   jwt:
     secret-key: rrrkkkvvvsercretrkarpiikeydsagea123321412553asdasgsadasgs123tasfasfsd23553
-
+google:
+  client-id: 859510131427-kt9qeh2juherf403na5fphrpkf2p1ttj.apps.googleusercontent.com

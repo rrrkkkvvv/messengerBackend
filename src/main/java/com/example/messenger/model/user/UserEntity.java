@@ -37,12 +37,12 @@ public class UserEntity {
 
     }
 
-    public UserEntity( String email, String name, String avatarUrl, String googleId, String password) {
+    public UserEntity( String email, String name, String avatarUrl, String googleId) {
         this.email = email;
         this.name = name;
         this.avatarUrl = avatarUrl;
         this.googleId = googleId;
-        this.password = password;
+
     }
     public UserEntity( String email, String name,  String password) {
         this.email = email;

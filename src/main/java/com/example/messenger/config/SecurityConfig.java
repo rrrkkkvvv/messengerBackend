@@ -21,7 +21,8 @@ public class SecurityConfig {
                         auth
                             .requestMatchers("/auth/**").permitAll()
                             .anyRequest().authenticated()
-                );
+                )
+        ;
 
         return http.build();
     }
