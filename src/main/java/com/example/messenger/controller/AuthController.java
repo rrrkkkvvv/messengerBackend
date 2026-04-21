@@ -28,16 +28,16 @@ public class AuthController {
     @PostMapping("/signIn")
     public ResponseEntity<AuthResponse> signIn(@RequestBody @Valid SignInRequest signInRequest){
         log.info("Sign in by: '"+signInRequest.email());
-        return ResponseEntity.status(201).body(authService.signIn(signInRequest)) ;
+        return ResponseEntity.status(200).body(authService.signIn(signInRequest)) ;
     }
     @PostMapping("/googleAuth")
     public ResponseEntity<AuthResponse> googleAuth(@RequestBody GoogleAuthRequest googleAuthRequest)  {
         log.info("Google auth with '"+googleAuthRequest.googleToken()+"' token");
-        return ResponseEntity.status(201).body(authService.googleAuth(googleAuthRequest)) ;
+        return ResponseEntity.status(200).body(authService.googleAuth(googleAuthRequest)) ;
     }
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshAuthRequest refreshAuthRequest)  {
         log.info("Refresh of user by"+refreshAuthRequest.jwt()+"' jwt");
-        return ResponseEntity.status(201).body(authService.refresh(refreshAuthRequest)) ;
+        return ResponseEntity.status(200).body(authService.refresh(refreshAuthRequest)) ;
     }
 }

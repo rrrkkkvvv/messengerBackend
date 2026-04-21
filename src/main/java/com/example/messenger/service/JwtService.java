@@ -45,7 +45,7 @@ public class JwtService {
         final Date expiration = getClaimsFromToken(token).getExpiration();
         return expiration.before(new Date());
     }
-    public boolean isTokenValid(String token, User user) {
+    public boolean isTokenValid(String token, JwtUserSubject user) {
         final JwtUserSubject userData = extractUserData(token);
         return userData.id().equals(user.id())
                 && userData.email().equals(user.email())

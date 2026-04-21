@@ -75,7 +75,7 @@ public class AuthService {
     }
     public AuthResponse googleAuth(GoogleAuthRequest googleAuthRequest)  {
 
-        try {
+
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
                     new NetHttpTransport(),
                     new GsonFactory()
@@ -83,10 +83,12 @@ public class AuthService {
                     .setAudience(Collections.singletonList(googleClientId))
                     .build();
 
-            GoogleIdToken idToken = verifier.verify(googleAuthRequest.googleToken());
+            try {
+                GoogleIdToken idToken = verifier.verify(googleAuthRequest.googleToken());
+
 
             if (idToken == null) {
-                throw new RuntimeException("Invalid Google token");
+                throw new InvalidCredentialsException();
             }
 
             GoogleIdToken.Payload payload = idToken.getPayload();
@@ -106,10 +108,10 @@ public class AuthService {
                 String token = jwtService.buildToken(new JwtUserSubject(savedUserEntity.getId(), savedUserEntity.getEmail()) );
                 return new AuthResponse(userMapper.convertToDomain(savedUserEntity), token);
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Google token verification failed", e);
-        }
 
+            }catch (Exception e){
+                throw new InvalidCredentialsException();
+            }
 
 
     }
