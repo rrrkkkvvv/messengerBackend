@@ -1,6 +1,10 @@
 package com.example.messenger.controller;
 
 import com.example.messenger.model.user.*;
+import com.example.messenger.model.user.request.GoogleAuthRequest;
+import com.example.messenger.model.user.request.RefreshAuthRequest;
+import com.example.messenger.model.user.request.SignInRequest;
+import com.example.messenger.model.user.request.SignUpRequest;
 import com.example.messenger.service.AuthService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -31,12 +35,12 @@ public class AuthController {
         return ResponseEntity.status(200).body(authService.signIn(signInRequest)) ;
     }
     @PostMapping("/googleAuth")
-    public ResponseEntity<AuthResponse> googleAuth(@RequestBody GoogleAuthRequest googleAuthRequest)  {
+    public ResponseEntity<AuthResponse> googleAuth(@RequestBody @Valid GoogleAuthRequest googleAuthRequest)  {
         log.info("Google auth with '"+googleAuthRequest.googleToken()+"' token");
         return ResponseEntity.status(200).body(authService.googleAuth(googleAuthRequest)) ;
     }
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshAuthRequest refreshAuthRequest)  {
+    public ResponseEntity<AuthResponse> refresh(@RequestBody @Valid RefreshAuthRequest refreshAuthRequest)  {
         log.info("Refresh of user by"+refreshAuthRequest.jwt()+"' jwt");
         return ResponseEntity.status(200).body(authService.refresh(refreshAuthRequest)) ;
     }

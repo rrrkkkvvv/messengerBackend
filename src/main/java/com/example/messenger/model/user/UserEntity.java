@@ -77,4 +77,12 @@ public class UserEntity {
     public String getPassword() {
         return password;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setAvatarUrl(@Nullable String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
 }

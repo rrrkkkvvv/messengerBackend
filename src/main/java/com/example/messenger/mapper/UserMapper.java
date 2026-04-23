@@ -4,7 +4,7 @@ import com.example.messenger.model.user.User;
 import com.example.messenger.model.user.UserEntity;
 import org.springframework.stereotype.Component;
 @Component
-public class UserMapper {
+public  class UserMapper {
     public User convertToDomain(UserEntity userEntity){
         return new User(
                 userEntity.getId(),

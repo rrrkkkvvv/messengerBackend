@@ -1,4 +1,4 @@
-package com.example.messenger.model.user;
+package com.example.messenger.model.user.request;
 
 import com.example.messenger.util.PatternConstants;
 import jakarta.validation.constraints.Pattern;
