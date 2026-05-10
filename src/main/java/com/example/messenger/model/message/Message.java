@@ -32,6 +32,8 @@ public record Message(
         @Nullable
         Date editedAt,
         @NotNull
+        Date sentAt,
+        @NotNull
         Set<UserEntity> seenUsers
 
 ) {

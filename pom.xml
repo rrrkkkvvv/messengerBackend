@@ -83,6 +83,16 @@
             <artifactId>cloudinary-http44</artifactId>
             <version>1.39.0</version>
          </dependency>
+         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-websocket</artifactId>
+            <version>7.0.7</version>
+         </dependency>
+         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-messaging</artifactId>
+            <version>7.0.7</version>
+         </dependency>
 	</dependencies>
 
 	<build>

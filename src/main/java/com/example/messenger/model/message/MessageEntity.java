@@ -24,7 +24,7 @@ public class MessageEntity {
     private String messageText;
     private String messageImageUrl;
     private Date editedAt;
-
+    private Date sentAt;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id")
     public UserEntity sender;
@@ -52,15 +52,15 @@ public class MessageEntity {
         return id;
     }
 
-    public boolean isCallInfo() {
+    public boolean getIsCallInfo() {
         return isCallInfo;
     }
 
-    public boolean isAnswered() {
+    public boolean getIsAnswered() {
         return isAnswered;
     }
 
-    public boolean isEnded() {
+    public boolean getIsEnded() {
         return isEnded;
     }
 
@@ -68,7 +68,7 @@ public class MessageEntity {
         return duration;
     }
 
-    public boolean isAudioMessage() {
+    public boolean getIsAudioMessage() {
         return isAudioMessage;
     }
 
@@ -86,6 +86,14 @@ public class MessageEntity {
 
     public Date getEditedAt() {
         return editedAt;
+    }
+
+    public Date getSentAt() {
+        return sentAt;
+    }
+
+    public void setSentAt(Date sentAt) {
+        this.sentAt = sentAt;
     }
 
     public UserEntity getSender() {

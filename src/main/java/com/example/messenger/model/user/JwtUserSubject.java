@@ -1,6 +1,6 @@
 package com.example.messenger.model.user;
 
-public record JwtUserSubject(
+public record JwtUserSubject (
         Long id,
         String email
 ) {

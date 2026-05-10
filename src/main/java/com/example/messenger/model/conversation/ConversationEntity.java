@@ -17,6 +17,7 @@ public class ConversationEntity {
     private String name;
 
     private String avatarUrl;
+    private String conversationKey;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
@@ -46,6 +47,14 @@ public class ConversationEntity {
 
     public String getName() {
         return name;
+    }
+
+    public UserEntity getOwner() {
+        return owner;
+    }
+
+    public List<UserEntity> getMembers() {
+        return members;
     }
 
     public String getAvatarUrl() {

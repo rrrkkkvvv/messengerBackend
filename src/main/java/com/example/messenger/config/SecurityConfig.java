@@ -41,6 +41,8 @@ public class SecurityConfig {
                         auth
                             .requestMatchers("/auth/refresh").authenticated()
                             .requestMatchers("/auth/**").permitAll()
+                            .requestMatchers("/ws/**").permitAll()
+
                             .anyRequest().authenticated()
 
 
