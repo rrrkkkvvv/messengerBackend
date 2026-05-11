@@ -2,6 +2,7 @@ package com.example.messenger.controller;
 
 import com.example.messenger.model.ContactPreviewDto;
 import com.example.messenger.model.conversation.ConversationEntity;
+import com.example.messenger.model.conversation.ConversationWithMessages;
 import com.example.messenger.model.user.AuthResponse;
 import com.example.messenger.model.user.JwtUserSubject;
 import com.example.messenger.model.user.request.SignUpRequest;
@@ -24,18 +25,17 @@ public class ConversationController {
     ConversationController(ConversationService conversationService){
         this.conversationService=conversationService;
     }
-    @GetMapping("/getContacts")
-    public ResponseEntity<List<ContactPreviewDto>> getConversations(@RequestParam Long userId){
+    @GetMapping("/getContacts/{userId}")
+    public ResponseEntity<List<ContactPreviewDto>> getConversations(@PathVariable Long userId){
         log.info("Get conversations for user with id: '"+userId);
 
         return ResponseEntity.status(200).body(conversationService.getContacts(userId)) ;
     }
-    @GetMapping("/direct")
-    public ResponseEntity<String> getDirectConversation(@RequestParam Long userId, @AuthenticationPrincipal JwtUserSubject currentUser
+    @GetMapping("/direct/{userId}")
+    public ResponseEntity<ConversationWithMessages> getDirectConversation(@PathVariable Long userId, @AuthenticationPrincipal JwtUserSubject currentUser
     ){
-        log.info("Current user: "+currentUser.id());
-        log.info("Conv with user: "+userId);
 
-        return ResponseEntity.status(200).body("") ;
+
+        return ResponseEntity.status(200).body(conversationService.getDirectConversation(currentUser.id(), userId)) ;
     }
 }

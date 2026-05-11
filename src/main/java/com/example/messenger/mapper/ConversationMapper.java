@@ -13,9 +13,7 @@ import java.util.List;
 @Component
 public class ConversationMapper {
     private static final Logger log = LoggerFactory.getLogger(ConversationMapper.class);
-    public ConversationWithMessages mapConversationWithMessages(ConversationEntity conv, List<MessageEntity> messages){
 
-    }
     public List<Message> mapMessageEntities(List<MessageEntity> messageEntities){
         return messageEntities.stream().map(m -> new Message(
                 m.getId(),

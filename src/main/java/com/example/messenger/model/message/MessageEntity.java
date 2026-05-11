@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+//    INSERT INTO messages (conversation_id, sender_id, message_text, is_answered, is_audio_message, is_call_info, is_ended) VALUES (7, 3, 'TExt 123', false, false, false, false);
 
 @Entity
 @Table(name = "messages")
@@ -47,7 +48,6 @@ public class MessageEntity {
         this.conversation = conversation;
         this.editedAt = new Date();
     }
-
     public Long getId() {
         return id;
     }

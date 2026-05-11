@@ -61,6 +61,15 @@ public class ConversationEntity {
         return avatarUrl;
     }
 
+    public void setIsGroup(boolean isGroup) {
+        this.isGroup = isGroup;
+    }
 
+    public void setConversationKey(String conversationKey) {
+        this.conversationKey = conversationKey;
+    }
 
+    public void setMembers(List<UserEntity> members) {
+        this.members = members;
+    }
 }

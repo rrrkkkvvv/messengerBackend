@@ -24,7 +24,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final UserService userService;
     private final UserMapper userMapper;
 
-    @Autowired
     public JwtAuthFilter( JwtService jwtService,UserService userService, UserMapper userMapper) {
         this.jwtService = jwtService;
         this.userService = userService;

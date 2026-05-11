@@ -8,12 +8,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 
+import java.util.List;
 import java.util.Optional;
 
 public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
     @Query("select m from MessageEntity m left join fetch m.seenUsers u where m.id = :id")
-    Optional< MessageEntity> findWithSeenUsers(@Param("id") long id);
-
+    Optional< MessageEntity> findByIdWithSeenUsers(@Param("id") long id);
+    @Query("select m from MessageEntity m left join fetch m.seenUsers  u where m.conversation.id = :id")
+    List< MessageEntity> findByConversationId(@Param("id") long id);
     @Modifying
     @Transactional
     @Query(value = """

@@ -1,6 +1,7 @@
 package com.example.messenger.exception;
 
 import com.example.messenger.exception.userExceptions.InvalidCredentialsException;
+import com.example.messenger.exception.userExceptions.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -48,7 +49,11 @@ public class GlobalExceptionHandler {
     }
 
 
-
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<?> handleNotFound(UserNotFoundException ex) {
+        log.error("Handle exception ",ex);
+        return ResponseEntity.status(404).body(new ErrorResponseDTO(ex.getMessage() ));
+    }
 
 
 }
