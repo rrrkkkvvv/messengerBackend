@@ -1,4 +1,4 @@
-package com.example.messenger.exception.userExceptions;
+package com.example.messenger.exception.user;
 
 public class UserNotFoundException extends RuntimeException{
     public UserNotFoundException() {

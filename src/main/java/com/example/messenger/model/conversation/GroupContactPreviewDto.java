@@ -44,4 +44,28 @@ public class GroupContactPreviewDto implements ContactPreviewDto {
     public void setLastMessage(MessageEntity lastMessage) {
         this.lastMessage = lastMessage;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public List<User> getMembers() {
+        return members;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public MessageEntity getLastMessage() {
+        return lastMessage;
+    }
 }

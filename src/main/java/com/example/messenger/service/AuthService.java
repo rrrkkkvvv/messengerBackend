@@ -1,6 +1,6 @@
 package com.example.messenger.service;
 
-import com.example.messenger.exception.userExceptions.InvalidCredentialsException;
+import com.example.messenger.exception.user.InvalidCredentialsException;
 import com.example.messenger.mapper.UserMapper;
 import com.example.messenger.model.user.*;
 import com.example.messenger.model.user.request.GoogleAuthRequest;

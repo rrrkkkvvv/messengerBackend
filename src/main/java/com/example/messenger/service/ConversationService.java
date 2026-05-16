@@ -1,12 +1,12 @@
 package com.example.messenger.service;
 
-import com.example.messenger.exception.userExceptions.UserNotFoundException;
+import com.example.messenger.exception.conversation.ConversationNotFoundException;
+import com.example.messenger.exception.user.InvalidCredentialsException;
+import com.example.messenger.exception.user.UserNotFoundException;
 import com.example.messenger.mapper.ConversationMapper;
 import com.example.messenger.mapper.UserMapper;
 import com.example.messenger.model.ContactPreviewDto;
-import com.example.messenger.model.conversation.ConversationEntity;
-import com.example.messenger.model.conversation.ConversationWithMessages;
-import com.example.messenger.model.conversation.UserContactPreviewDto;
+import com.example.messenger.model.conversation.*;
 import com.example.messenger.model.message.Message;
 import com.example.messenger.model.message.MessageEntity;
 import com.example.messenger.model.user.UserEntity;
@@ -84,7 +84,6 @@ public class ConversationService {
         String key = String.valueOf(Math.min(currentUserId, userId))  + String.valueOf(Math.max(currentUserId, userId));
         Optional<ConversationEntity> conversationEntity = conversationRepository.findByKey(key);
         if(conversationEntity.isPresent()){
-            log.info("present----------------");
             UserEntity userEntity = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
             List<MessageEntity> messageEntities =  messageReporitory.findByConversationId(conversationEntity.get().getId());
             UserContactPreviewDto contact = userMapper.mapUserWithConversation(userEntity, conversationEntity.get());
@@ -92,8 +91,6 @@ public class ConversationService {
             return  new ConversationWithMessages(contact, messages);
 
         }else{
-            log.info("new---------------------");
-
             UserEntity userEntity1 = userRepository.findById(currentUserId).orElseThrow(UserNotFoundException::new);
             UserEntity userEntity2 = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
             ConversationEntity conversation = new ConversationEntity();
@@ -104,5 +101,29 @@ public class ConversationService {
             UserContactPreviewDto contact = userMapper.mapUserWithConversation(userEntity2, saved);
             return  new ConversationWithMessages(contact, List.of());
         }
+    }
+    public ConversationWithMessages createGroup(CreateGroupRequest groupInfo, Long ownerId){
+        UserEntity owner = userRepository.findById(ownerId).orElseThrow(InvalidCredentialsException::new);
+        List<UserEntity> members = groupInfo.memberIds()
+                .stream()
+                .map(id -> userRepository.findById(id).orElseThrow(UserNotFoundException::new))
+                .toList();
+        ConversationEntity conversationEntity = new ConversationEntity();
+        conversationEntity.setName(groupInfo.name());
+        conversationEntity.setIsGroup(true);
+        conversationEntity.setMembers(members);
+        conversationEntity.setOwner(owner);
+        conversationRepository.save(conversationEntity);
+
+        GroupContactPreviewDto contact = userMapper.mapGroup(conversationEntity);
+        return new ConversationWithMessages(contact, List.of());
+    }
+    public ConversationWithMessages getGroup(Long conversationId){
+        ConversationEntity conversation = conversationRepository.findById(conversationId).orElseThrow(ConversationNotFoundException::new);
+        GroupContactPreviewDto contact = userMapper.mapGroup(conversation);
+        List<MessageEntity> messageEntities =  messageReporitory.findByConversationId(conversationId);
+        List<Message> messages = conversationMapper.mapMessageEntities(messageEntities);
+        return new ConversationWithMessages(contact, messages);
+
     }
 }

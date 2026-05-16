@@ -1,6 +1,6 @@
 package com.example.messenger.service;
 
-import com.example.messenger.exception.userExceptions.InvalidCredentialsException;
+import com.example.messenger.exception.user.InvalidCredentialsException;
 import com.example.messenger.mapper.UserMapper;
 import com.example.messenger.model.user.AvatarAction;
 import com.example.messenger.model.user.User;
@@ -9,7 +9,6 @@ import com.example.messenger.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service

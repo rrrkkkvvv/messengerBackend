@@ -1,4 +1,4 @@
-package com.example.messenger.exception.userExceptions;
+package com.example.messenger.exception.user;
 
 
 public class InvalidCredentialsException extends RuntimeException {

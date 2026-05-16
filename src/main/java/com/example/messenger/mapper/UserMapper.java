@@ -67,6 +67,10 @@ public  class UserMapper {
         dto.setMembers(conversation.getMembers().stream().map(this::convertToDomain).toList());
         dto.setOwner(convertToDomain(conversation.getOwner()));
         dto.setLastMessage(conversation.getLastMessage());
+
+
+
+
         return dto;
 
     }

@@ -21,6 +21,7 @@ public interface ConversationRepository extends JpaRepository<ConversationEntity
 
     @Query("""
         SELECT c FROM ConversationEntity c
+        LEFT JOIN FETCH c.lastMessage
         WHERE c.conversationKey = :key
     """)
     Optional<ConversationEntity> findByKey(String key);

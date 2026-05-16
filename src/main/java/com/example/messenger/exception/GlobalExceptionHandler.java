@@ -1,17 +1,16 @@
 package com.example.messenger.exception;
 
-import com.example.messenger.exception.userExceptions.InvalidCredentialsException;
-import com.example.messenger.exception.userExceptions.UserNotFoundException;
+import com.example.messenger.exception.conversation.ConversationNotFoundException;
+import com.example.messenger.exception.user.InvalidCredentialsException;
+import com.example.messenger.exception.user.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @ControllerAdvice
@@ -49,7 +48,7 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(UserNotFoundException.class)
+    @ExceptionHandler(exception ={UserNotFoundException.class,  ConversationNotFoundException.class})
     public ResponseEntity<?> handleNotFound(UserNotFoundException ex) {
         log.error("Handle exception ",ex);
         return ResponseEntity.status(404).body(new ErrorResponseDTO(ex.getMessage() ));

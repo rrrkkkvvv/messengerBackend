@@ -41,6 +41,18 @@ public class ConversationEntity {
     public MessageEntity getLastMessage() { return lastMessage; }
     public void setLastMessage(MessageEntity message) { this.lastMessage = message; }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public void setOwner(UserEntity owner) {
+        this.owner = owner;
+    }
+
     public boolean isGroup() {
         return isGroup;
     }

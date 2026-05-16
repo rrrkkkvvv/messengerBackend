@@ -3,6 +3,7 @@ package com.example.messenger.controller;
 import com.example.messenger.model.ContactPreviewDto;
 import com.example.messenger.model.conversation.ConversationEntity;
 import com.example.messenger.model.conversation.ConversationWithMessages;
+import com.example.messenger.model.conversation.CreateGroupRequest;
 import com.example.messenger.model.user.AuthResponse;
 import com.example.messenger.model.user.JwtUserSubject;
 import com.example.messenger.model.user.request.SignUpRequest;
@@ -25,17 +26,29 @@ public class ConversationController {
     ConversationController(ConversationService conversationService){
         this.conversationService=conversationService;
     }
-    @GetMapping("/getContacts/{userId}")
-    public ResponseEntity<List<ContactPreviewDto>> getConversations(@PathVariable Long userId){
-        log.info("Get conversations for user with id: '"+userId);
+    @GetMapping("/getContacts")
+    public ResponseEntity<List<ContactPreviewDto>> getConversations(@AuthenticationPrincipal JwtUserSubject currentUser){
+        log.info("Get conversations for user with id: '"+currentUser.id());
 
-        return ResponseEntity.status(200).body(conversationService.getContacts(userId)) ;
+        return ResponseEntity.status(200).body(conversationService.getContacts(currentUser.id())) ;
     }
     @GetMapping("/direct/{userId}")
-    public ResponseEntity<ConversationWithMessages> getDirectConversation(@PathVariable Long userId, @AuthenticationPrincipal JwtUserSubject currentUser
+    public ResponseEntity<ConversationWithMessages> getDirectConversation(
+            @PathVariable Long userId,
+            @AuthenticationPrincipal JwtUserSubject currentUser
     ){
-
-
         return ResponseEntity.status(200).body(conversationService.getDirectConversation(currentUser.id(), userId)) ;
+    }
+    @PostMapping("/createGroup")
+    public ResponseEntity<ConversationWithMessages> createGroup(
+            @RequestBody @Valid CreateGroupRequest createGroupRequest,
+            @AuthenticationPrincipal JwtUserSubject currentUser
+    ){
+        return ResponseEntity.status(200).body(conversationService.createGroup(createGroupRequest, currentUser.id())) ;
+    }
+    @GetMapping("/group/{conversationId}")
+    public ResponseEntity<ConversationWithMessages> getGroupConversation(@PathVariable Long conversationId, @AuthenticationPrincipal JwtUserSubject currentUser
+    ){
+        return ResponseEntity.status(200).body(conversationService.getGroup(conversationId)) ;
     }
 }
