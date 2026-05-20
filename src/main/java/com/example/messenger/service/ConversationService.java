@@ -10,6 +10,7 @@ import com.example.messenger.model.ContactPreviewDto;
 import com.example.messenger.model.conversation.*;
 import com.example.messenger.model.message.Message;
 import com.example.messenger.model.message.MessageEntity;
+import com.example.messenger.model.user.User;
 import com.example.messenger.model.user.UserEntity;
 import com.example.messenger.repository.ConversationRepository;
 import com.example.messenger.repository.MessageRepository;
@@ -115,6 +116,20 @@ public class ConversationService {
          members.removeIf(userEntity -> userEntity.getId().equals(memberId));
          conversationEntity.setMembers(members);
          conversationRepository.save(conversationEntity);
+    }
+    public void addUsers(Long conversationId,Long[] memberIds, Long currentUserId){
+        ConversationEntity conversationEntity = conversationRepository.findById(conversationId).orElseThrow(ConversationNotFoundException::new);
+        if(!Objects.equals(conversationEntity.owner.getId(), currentUserId) ){
+            throw new UserAccessDeniedException();
+        }
+        List<UserEntity> memberEntities = new ArrayList<>();
+        for (Long id : memberIds){
+            memberEntities.add(userRepository.findById(id).orElseThrow(UserNotFoundException::new));
+        }
+        List<UserEntity> members = conversationEntity.getMembers();
+        members.addAll(memberEntities);
+        conversationEntity.setMembers(members);
+        conversationRepository.save(conversationEntity);
     }
     public ConversationWithMessages createGroup(CreateGroupRequest groupInfo, Long ownerId){
         UserEntity owner = userRepository.findById(ownerId).orElseThrow(InvalidCredentialsException::new);

@@ -1,6 +1,7 @@
 package com.example.messenger.controller;
 
 import com.example.messenger.model.ContactPreviewDto;
+import com.example.messenger.model.conversation.AddToGroupRequest;
 import com.example.messenger.model.conversation.ConversationEntity;
 import com.example.messenger.model.conversation.ConversationWithMessages;
 import com.example.messenger.model.conversation.CreateGroupRequest;
@@ -58,6 +59,15 @@ public class ConversationController {
             @AuthenticationPrincipal JwtUserSubject currentUser
     ){
         conversationService.kickUser(conversationId,memberId, currentUser.id());
+        return ResponseEntity.status(200).build();
+    }
+    @PostMapping("/group/{conversationId}/members")
+    public ResponseEntity<Void> addMembersToConversation(
+            @PathVariable Long conversationId,
+            @RequestBody @Valid AddToGroupRequest addToGroupRequest,
+            @AuthenticationPrincipal JwtUserSubject currentUser
+    ){
+        conversationService.addUsers(conversationId, addToGroupRequest.memberIds(), currentUser.id());
         return ResponseEntity.status(200).build();
     }
 
