@@ -2,6 +2,7 @@ package com.example.messenger.service;
 
 import com.example.messenger.exception.conversation.ConversationNotFoundException;
 import com.example.messenger.exception.user.InvalidCredentialsException;
+import com.example.messenger.exception.user.UserAccessDeniedException;
 import com.example.messenger.exception.user.UserNotFoundException;
 import com.example.messenger.mapper.ConversationMapper;
 import com.example.messenger.mapper.UserMapper;
@@ -16,7 +17,9 @@ import com.example.messenger.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
  import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import java.nio.file.AccessDeniedException;
 import java.util.*;
 
 
@@ -102,12 +105,24 @@ public class ConversationService {
             return  new ConversationWithMessages(contact, List.of());
         }
     }
+    public void kickUser(Long conversationId,Long memberId, Long currentUserId){
+         ConversationEntity conversationEntity = conversationRepository.findById(conversationId).orElseThrow(ConversationNotFoundException::new);
+
+         if(!Objects.equals(conversationEntity.owner.getId(), currentUserId) || memberId.equals(currentUserId)){
+            throw new UserAccessDeniedException();
+         }
+         List<UserEntity> members = conversationEntity.getMembers();
+         members.removeIf(userEntity -> userEntity.getId().equals(memberId));
+         conversationEntity.setMembers(members);
+         conversationRepository.save(conversationEntity);
+    }
     public ConversationWithMessages createGroup(CreateGroupRequest groupInfo, Long ownerId){
         UserEntity owner = userRepository.findById(ownerId).orElseThrow(InvalidCredentialsException::new);
-        List<UserEntity> members = groupInfo.memberIds()
+        List<UserEntity> members = new ArrayList<>(groupInfo.memberIds()
                 .stream()
                 .map(id -> userRepository.findById(id).orElseThrow(UserNotFoundException::new))
-                .toList();
+                .toList());
+        members.add(owner);
         ConversationEntity conversationEntity = new ConversationEntity();
         conversationEntity.setName(groupInfo.name());
         conversationEntity.setIsGroup(true);

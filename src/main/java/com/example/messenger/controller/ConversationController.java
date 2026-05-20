@@ -51,4 +51,14 @@ public class ConversationController {
     ){
         return ResponseEntity.status(200).body(conversationService.getGroup(conversationId)) ;
     }
+    @DeleteMapping("/group/{conversationId}/members/{memberId}")
+    public ResponseEntity<Void> kickFromConversation(
+            @PathVariable Long conversationId,
+            @PathVariable Long memberId,
+            @AuthenticationPrincipal JwtUserSubject currentUser
+    ){
+        conversationService.kickUser(conversationId,memberId, currentUser.id());
+        return ResponseEntity.status(200).build();
+    }
+
 }

@@ -23,7 +23,7 @@ public class ConversationEntity {
     @JoinColumn(name = "owner_id")
     public UserEntity owner;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "conversation_members",
             joinColumns = @JoinColumn(name = "conversation_id"),

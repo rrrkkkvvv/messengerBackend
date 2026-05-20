@@ -2,6 +2,7 @@ package com.example.messenger.exception;
 
 import com.example.messenger.exception.conversation.ConversationNotFoundException;
 import com.example.messenger.exception.user.InvalidCredentialsException;
+import com.example.messenger.exception.user.UserAccessDeniedException;
 import com.example.messenger.exception.user.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,10 +48,15 @@ public class GlobalExceptionHandler {
         log.error("Handle exception ",ex);
         return ResponseEntity.status(409).body(new ErrorResponseDTO(ex.getMessage() ));
     }
+    @ExceptionHandler(exception ={UserAccessDeniedException.class})
+    public ResponseEntity<?> handleAccessDenied(RuntimeException ex) {
+        log.error("Handle exception ",ex);
+        return ResponseEntity.status(403).body(new ErrorResponseDTO(ex.getMessage() ));
+    }
 
 
     @ExceptionHandler(exception ={UserNotFoundException.class,  ConversationNotFoundException.class})
-    public ResponseEntity<?> handleNotFound(UserNotFoundException ex) {
+    public ResponseEntity<?> handleNotFound(RuntimeException ex) {
         log.error("Handle exception ",ex);
         return ResponseEntity.status(404).body(new ErrorResponseDTO(ex.getMessage() ));
     }
