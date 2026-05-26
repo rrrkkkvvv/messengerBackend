@@ -50,7 +50,7 @@ public class ConversationController {
     @GetMapping("/group/{conversationId}")
     public ResponseEntity<ConversationWithMessages> getGroupConversation(@PathVariable Long conversationId, @AuthenticationPrincipal JwtUserSubject currentUser
     ){
-        return ResponseEntity.status(200).body(conversationService.getGroup(conversationId)) ;
+        return ResponseEntity.status(200).body(conversationService.getGroup(conversationId, currentUser.id())) ;
     }
     @DeleteMapping("/group/{conversationId}/members/{memberId}")
     public ResponseEntity<Void> kickFromConversation(
@@ -70,5 +70,12 @@ public class ConversationController {
         conversationService.addUsers(conversationId, addToGroupRequest.memberIds(), currentUser.id());
         return ResponseEntity.status(200).build();
     }
-
+    @DeleteMapping("/group/{conversationId}/leave")
+    public ResponseEntity<Void> leaveConversation(
+            @PathVariable Long conversationId,
+            @AuthenticationPrincipal JwtUserSubject currentUser
+    ){
+        conversationService.leaveConversation(conversationId, currentUser.id());
+        return ResponseEntity.status(200).build();
+    }
 }

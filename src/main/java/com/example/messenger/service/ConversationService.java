@@ -131,6 +131,17 @@ public class ConversationService {
         conversationEntity.setMembers(members);
         conversationRepository.save(conversationEntity);
     }
+    public void leaveConversation(Long conversationId, Long currentUserId){
+        ConversationEntity conversationEntity = conversationRepository.findById(conversationId).orElseThrow(ConversationNotFoundException::new);
+        if(Objects.equals(conversationEntity.owner.getId(), currentUserId) ){
+            throw new UserAccessDeniedException();
+        }
+
+        List<UserEntity> members = conversationEntity.getMembers();
+        members.removeIf(userEntity -> userEntity.getId().equals(currentUserId));
+        conversationEntity.setMembers(members);
+        conversationRepository.save(conversationEntity);
+    }
     public ConversationWithMessages createGroup(CreateGroupRequest groupInfo, Long ownerId){
         UserEntity owner = userRepository.findById(ownerId).orElseThrow(InvalidCredentialsException::new);
         List<UserEntity> members = new ArrayList<>(groupInfo.memberIds()
@@ -148,8 +159,19 @@ public class ConversationService {
         GroupContactPreviewDto contact = userMapper.mapGroup(conversationEntity);
         return new ConversationWithMessages(contact, List.of());
     }
-    public ConversationWithMessages getGroup(Long conversationId){
+    public ConversationWithMessages getGroup(Long conversationId, Long currentUserId){
         ConversationEntity conversation = conversationRepository.findById(conversationId).orElseThrow(ConversationNotFoundException::new);
+        boolean isMember = false;
+        for (UserEntity user : conversation.getMembers()){
+            if (user.getId().equals(currentUserId)) {
+                isMember = true;
+                break;
+            }
+        }
+        if(!isMember){
+            throw new UserAccessDeniedException();
+        }
+
         GroupContactPreviewDto contact = userMapper.mapGroup(conversation);
         List<MessageEntity> messageEntities =  messageReporitory.findByConversationId(conversationId);
         List<Message> messages = conversationMapper.mapMessageEntities(messageEntities);
