@@ -10,7 +10,7 @@ import com.example.messenger.model.ContactPreviewDto;
 import com.example.messenger.model.conversation.*;
 import com.example.messenger.model.message.Message;
 import com.example.messenger.model.message.MessageEntity;
-import com.example.messenger.model.user.User;
+import com.example.messenger.model.AvatarAction;
 import com.example.messenger.model.user.UserEntity;
 import com.example.messenger.repository.ConversationRepository;
 import com.example.messenger.repository.MessageRepository;
@@ -18,9 +18,8 @@ import com.example.messenger.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
  import org.springframework.stereotype.Service;
-import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.AccessDeniedException;
 import java.util.*;
 
 
@@ -33,6 +32,7 @@ public class ConversationService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final ConversationMapper conversationMapper;
+    private final CloudinaryService cloudinaryService;
 
 
     public ConversationService(
@@ -40,13 +40,16 @@ public class ConversationService {
             UserRepository userRepository,
             UserMapper userMapper,
             MessageRepository messageReporitory,
-            ConversationMapper conversationMapper
+            ConversationMapper conversationMapper,
+            CloudinaryService cloudinaryService
      ) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.conversationRepository=conversationRepository;
         this.messageReporitory=messageReporitory;
         this.conversationMapper=conversationMapper;
+        this.cloudinaryService=cloudinaryService;
+
 
     }
     public List<ContactPreviewDto> getContacts(Long id){
@@ -178,4 +181,32 @@ public class ConversationService {
         return new ConversationWithMessages(contact, messages);
 
     }
+    public GroupContactPreviewDto updateById(
+            Long conversationId,
+            Long currentUserId,
+            String name,
+            AvatarAction avatarAction,
+            MultipartFile avatar
+    ){
+        ConversationEntity conversationEntity = conversationRepository.findById(conversationId).orElseThrow(ConversationNotFoundException::new);
+        if(!conversationEntity.getOwner().getId().equals(currentUserId)){
+            throw new UserAccessDeniedException();
+        }
+        if (name != null && !name.isBlank()) {
+            conversationEntity.setName(name);
+        }
+
+        if (avatar != null && !avatar.isEmpty() && avatarAction.equals(AvatarAction.SET) ) {
+            String avatarUrl = cloudinaryService.uploadFile(avatar, "folder_1");
+            conversationEntity.setAvatarUrl(avatarUrl);
+        }else if(avatarAction.equals(AvatarAction.REMOVE)){
+            conversationEntity.setAvatarUrl(null);
+        }
+
+        conversationRepository.save(conversationEntity);
+
+        return userMapper.mapGroup(conversationEntity);
+
+    }
+
 }

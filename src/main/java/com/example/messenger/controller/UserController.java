@@ -1,15 +1,15 @@
 package com.example.messenger.controller;
 
-import com.cloudinary.Cloudinary;
-import com.example.messenger.model.user.AvatarAction;
+import com.example.messenger.model.AvatarAction;
+import com.example.messenger.model.user.JwtUserSubject;
 import com.example.messenger.model.user.User;
 import com.example.messenger.model.user.request.DeleteAccountRequest;
-import com.example.messenger.service.CloudinaryService;
 import com.example.messenger.service.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,16 +31,17 @@ public class UserController {
     }
     @PatchMapping("/updateProfile")
     public ResponseEntity<User> updateProfile(
-            @RequestParam Long id,
             @RequestParam(required = false) String name,
             @RequestParam(required = false)  String avatarAction,
-            @RequestPart(required = false) MultipartFile avatar
+            @RequestPart(required = false) MultipartFile avatar,
+            @AuthenticationPrincipal JwtUserSubject currentUser
+
     ){
         AvatarAction action = avatarAction != null
                 ? AvatarAction.valueOf(avatarAction)
-                : null;
+                : AvatarAction.NONE;
 
-         return ResponseEntity.status(200).body(userService.updateById(id, name, action, avatar)) ;
+         return ResponseEntity.status(200).body(userService.updateById(currentUser.id(), name, action, avatar)) ;
     }
 
 }

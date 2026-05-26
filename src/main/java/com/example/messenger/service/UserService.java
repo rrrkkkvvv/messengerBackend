@@ -2,7 +2,7 @@ package com.example.messenger.service;
 
 import com.example.messenger.exception.user.InvalidCredentialsException;
 import com.example.messenger.mapper.UserMapper;
-import com.example.messenger.model.user.AvatarAction;
+import com.example.messenger.model.AvatarAction;
 import com.example.messenger.model.user.User;
 import com.example.messenger.model.user.UserEntity;
 import com.example.messenger.repository.UserRepository;
@@ -32,6 +32,7 @@ public class UserService {
     }
     public User updateById(Long id, String name, AvatarAction avatarAction, MultipartFile avatar){
         UserEntity userEntity = userRepository.findById(id).orElseThrow(InvalidCredentialsException::new);
+
         if (name != null && !name.isBlank()) {
             userEntity.setName(name);
         }

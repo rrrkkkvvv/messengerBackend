@@ -1,13 +1,9 @@
 package com.example.messenger.controller;
 
 import com.example.messenger.model.ContactPreviewDto;
-import com.example.messenger.model.conversation.AddToGroupRequest;
-import com.example.messenger.model.conversation.ConversationEntity;
-import com.example.messenger.model.conversation.ConversationWithMessages;
-import com.example.messenger.model.conversation.CreateGroupRequest;
-import com.example.messenger.model.user.AuthResponse;
+import com.example.messenger.model.conversation.*;
+import com.example.messenger.model.AvatarAction;
 import com.example.messenger.model.user.JwtUserSubject;
-import com.example.messenger.model.user.request.SignUpRequest;
 import com.example.messenger.service.ConversationService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -15,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -77,5 +74,31 @@ public class ConversationController {
     ){
         conversationService.leaveConversation(conversationId, currentUser.id());
         return ResponseEntity.status(200).build();
+    }
+    @PatchMapping("/group/{conversationId}")
+    public ResponseEntity<GroupContactPreviewDto> updateConversation(
+            @PathVariable Long conversationId,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false)  String avatarAction,
+            @RequestPart(required = false) MultipartFile avatar,
+            @AuthenticationPrincipal JwtUserSubject currentUser
+            ){
+        System.out.println(avatarAction);
+        System.out.println(avatarAction==null);
+
+        AvatarAction action = avatarAction != null
+                ? AvatarAction.valueOf(avatarAction)
+                : AvatarAction.NONE;
+
+        return ResponseEntity.status(200).body(
+                conversationService.updateById(
+                        conversationId,
+                        currentUser.id(),
+                        name,
+                        action,
+                        avatar
+                )
+        ) ;
+
     }
 }
