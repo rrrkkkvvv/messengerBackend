@@ -24,4 +24,6 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
     ON CONFLICT DO NOTHING
 """, nativeQuery = true)
     void markSeen(Long messageId, Long userId);
+
+
 }

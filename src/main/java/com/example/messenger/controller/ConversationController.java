@@ -83,8 +83,7 @@ public class ConversationController {
             @RequestPart(required = false) MultipartFile avatar,
             @AuthenticationPrincipal JwtUserSubject currentUser
             ){
-        System.out.println(avatarAction);
-        System.out.println(avatarAction==null);
+
 
         AvatarAction action = avatarAction != null
                 ? AvatarAction.valueOf(avatarAction)
@@ -100,5 +99,13 @@ public class ConversationController {
                 )
         ) ;
 
+    }
+    @DeleteMapping("/{conversationId}")
+    public ResponseEntity<Void> deleteConversation(
+            @PathVariable Long conversationId,
+            @AuthenticationPrincipal JwtUserSubject currentUser
+    ){
+        conversationService.deleteById(conversationId, currentUser.id());
+        return ResponseEntity.status(200).build();
     }
 }

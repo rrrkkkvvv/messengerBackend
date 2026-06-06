@@ -208,5 +208,20 @@ public class ConversationService {
         return userMapper.mapGroup(conversationEntity);
 
     }
+    public void deleteById(Long conversationId, Long currentUserId){
+        ConversationEntity conversationEntity = conversationRepository.findById(conversationId).orElseThrow(ConversationNotFoundException::new);
+        if(conversationEntity.isGroup()){
+            if(!conversationEntity.owner.getId().equals(currentUserId)){
+                throw new UserAccessDeniedException();
+            }
+            conversationRepository.deleteById(conversationId);
 
+        }else{
+            if(conversationEntity.members.stream().noneMatch(u ->u.getId().equals(currentUserId) )){
+                throw new UserAccessDeniedException();
+            };
+            conversationRepository.deleteById(conversationId);
+
+        }
+    }
 }

@@ -31,6 +31,8 @@ public class ConversationEntity {
     )
     public List<UserEntity> members;
 
+    @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL)
+    public List<MessageEntity> messages;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "last_message_id")

@@ -31,6 +31,7 @@ public class MessageEntity {
     public UserEntity sender;
 
 
+
     @ManyToMany
     @JoinTable(
             name = "message_seen_users",
@@ -38,6 +39,7 @@ public class MessageEntity {
             inverseJoinColumns = {@JoinColumn(name="user_id")}
     )
     private Set<UserEntity> seenUsers = new HashSet<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conversation_id")
     private ConversationEntity conversation;

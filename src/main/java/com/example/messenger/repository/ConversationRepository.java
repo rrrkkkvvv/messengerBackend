@@ -1,8 +1,11 @@
 package com.example.messenger.repository;
 
 import com.example.messenger.model.conversation.ConversationEntity;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,5 +28,8 @@ public interface ConversationRepository extends JpaRepository<ConversationEntity
         WHERE c.conversationKey = :key
     """)
     Optional<ConversationEntity> findByKey(String key);
-
+//    @Modifying
+//    @Transactional
+//    @Query("delete from ConversationEntity c where c.id=:id")
+//    void deleteById(@Param("id") Long id);
 }
