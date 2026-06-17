@@ -123,7 +123,7 @@ public class AuthService {
         JwtUserSubject userData = jwtService.extractUserData(refreshAuthRequest.jwt());
 
         UserEntity userEntity = userRepository.findById(userData.id()).orElseThrow(InvalidCredentialsException::new);
-        System.out.println(userEntity.getId());
+
         String token = jwtService.buildToken(new JwtUserSubject(userEntity.getId(), userEntity.getEmail()) );
 
         return new AuthResponse(userMapper.convertToDomain(userEntity), token);
