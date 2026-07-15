@@ -7,6 +7,7 @@ import com.example.messenger.exception.user.UserNotFoundException;
 import com.example.messenger.mapper.ConversationMapper;
 import com.example.messenger.mapper.UserMapper;
 import com.example.messenger.model.ContactPreviewDto;
+import com.example.messenger.model.GetContactsResponse;
 import com.example.messenger.model.conversation.*;
 import com.example.messenger.model.message.Message;
 import com.example.messenger.model.message.MessageEntity;
@@ -15,6 +16,7 @@ import com.example.messenger.model.user.UserEntity;
 import com.example.messenger.repository.ConversationRepository;
 import com.example.messenger.repository.MessageRepository;
 import com.example.messenger.repository.UserRepository;
+import com.example.messenger.websocket.OnlineUsersRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
  import org.springframework.stereotype.Service;
@@ -27,8 +29,8 @@ import java.util.*;
 public class ConversationService {
     private static final Logger log = LoggerFactory.getLogger(ConversationService.class);
     private final ConversationRepository conversationRepository;
-    private final MessageRepository messageReporitory;
-
+    private final MessageRepository messageRepository;
+    private final OnlineUsersRegistry onlineUsersRegistry;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final ConversationMapper conversationMapper;
@@ -39,20 +41,21 @@ public class ConversationService {
             ConversationRepository conversationRepository,
             UserRepository userRepository,
             UserMapper userMapper,
-            MessageRepository messageReporitory,
+            MessageRepository messageRepository,
             ConversationMapper conversationMapper,
-            CloudinaryService cloudinaryService
+            CloudinaryService cloudinaryService,
+            OnlineUsersRegistry onlineUsersRegistry
      ) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.conversationRepository=conversationRepository;
-        this.messageReporitory=messageReporitory;
+        this.messageRepository =messageRepository;
         this.conversationMapper=conversationMapper;
         this.cloudinaryService=cloudinaryService;
+        this.onlineUsersRegistry=onlineUsersRegistry;
 
 
-    }
-    public List<ContactPreviewDto> getContacts(Long id){
+    }    public GetContactsResponse getContacts(Long id){
         List<ConversationEntity> conversations = conversationRepository.findAllByUserId(id);
 
         Map<Long, ConversationEntity> privateConversations = new HashMap<>();
@@ -77,7 +80,7 @@ public class ConversationService {
         for (UserEntity user : users) {
 
             ConversationEntity conversation = privateConversations.get(user.getId());
-             if (conversation != null) {
+            if (conversation != null) {
 
                 result.add(userMapper.mapUserWithConversation(user, conversation));
             } else {
@@ -85,14 +88,17 @@ public class ConversationService {
                 result.add(userMapper.mapUserWithoutConversation(user));
             }
         }
-        return result;
+        Long[] onlineUserIds = onlineUsersRegistry.getOnlineUsers();
+        return new GetContactsResponse(result,onlineUserIds) ;
     }
+
+
     public ConversationWithMessages getDirectConversation(Long currentUserId, Long userId){
         String key = String.valueOf(Math.min(currentUserId, userId))  + String.valueOf(Math.max(currentUserId, userId));
         Optional<ConversationEntity> conversationEntity = conversationRepository.findByKey(key);
         if(conversationEntity.isPresent()){
             UserEntity userEntity = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-            List<MessageEntity> messageEntities =  messageReporitory.findByConversationId(conversationEntity.get().getId());
+            List<MessageEntity> messageEntities =  messageRepository.findByConversationId(conversationEntity.get().getId());
             UserContactPreviewDto contact = userMapper.mapUserWithConversation(userEntity, conversationEntity.get());
             List<Message> messages = conversationMapper.mapMessageEntities(messageEntities);
             return  new ConversationWithMessages(contact, messages);
@@ -176,7 +182,7 @@ public class ConversationService {
         }
 
         GroupContactPreviewDto contact = userMapper.mapGroup(conversation);
-        List<MessageEntity> messageEntities =  messageReporitory.findByConversationId(conversationId);
+        List<MessageEntity> messageEntities =  messageRepository.findByConversationId(conversationId);
         List<Message> messages = conversationMapper.mapMessageEntities(messageEntities);
         return new ConversationWithMessages(contact, messages);
 

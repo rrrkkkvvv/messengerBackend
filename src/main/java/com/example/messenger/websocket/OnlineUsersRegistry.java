@@ -19,12 +19,11 @@ public class OnlineUsersRegistry {
     public void userConnected(Long userId){
         if(!registry.containsKey(userId)|| !registry.get(userId)){
             registry.put(userId, true);
-            System.out.println("SENDED MSG");
             webSocketMessageService.sendMessage("/topic/onlineStatus", new OnlineStatusUpdate(userId, true));
         }
 
     }
-    public void userDisconected(Long userId){
+    public void userDisconnected(Long userId){
         if(registry.containsKey(userId)&& registry.get(userId)){
             registry.put(userId, false);
             webSocketMessageService.sendMessage("/topic/onlineStatus", new OnlineStatusUpdate(userId, false));

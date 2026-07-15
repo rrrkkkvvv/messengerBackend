@@ -1,6 +1,6 @@
 package com.example.messenger.controller;
 
-import com.example.messenger.model.ContactPreviewDto;
+import com.example.messenger.model.GetContactsResponse;
 import com.example.messenger.model.conversation.*;
 import com.example.messenger.model.AvatarAction;
 import com.example.messenger.model.user.JwtUserSubject;
@@ -13,8 +13,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/conversation")
 public class ConversationController {
@@ -25,7 +23,7 @@ public class ConversationController {
         this.conversationService=conversationService;
     }
     @GetMapping("/getContacts")
-    public ResponseEntity<List<ContactPreviewDto>> getConversations(@AuthenticationPrincipal JwtUserSubject currentUser){
+    public ResponseEntity<GetContactsResponse> getConversations(@AuthenticationPrincipal JwtUserSubject currentUser){
         log.info("Get conversations for user with id: '"+currentUser.id());
 
         return ResponseEntity.status(200).body(conversationService.getContacts(currentUser.id())) ;

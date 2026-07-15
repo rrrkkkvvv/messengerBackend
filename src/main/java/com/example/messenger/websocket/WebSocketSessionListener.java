@@ -37,7 +37,7 @@ public class WebSocketSessionListener {
         if(auth!= null){
             JwtUserSubject userData = (JwtUserSubject) auth.getPrincipal();
             if(userData!=null){
-                onlineUsersRegistry.userDisconected(userData.id());
+                onlineUsersRegistry.userDisconnected(userData.id());
             }
 
 
