@@ -6,12 +6,10 @@ import com.example.messenger.exception.user.UserAccessDeniedException;
 import com.example.messenger.exception.user.UserNotFoundException;
 import com.example.messenger.mapper.ConversationMapper;
 import com.example.messenger.mapper.UserMapper;
-import com.example.messenger.model.ContactPreviewDto;
-import com.example.messenger.model.GetContactsResponse;
+import com.example.messenger.model.*;
 import com.example.messenger.model.conversation.*;
 import com.example.messenger.model.message.Message;
 import com.example.messenger.model.message.MessageEntity;
-import com.example.messenger.model.AvatarAction;
 import com.example.messenger.model.user.UserEntity;
 import com.example.messenger.repository.ConversationRepository;
 import com.example.messenger.repository.MessageRepository;
@@ -35,7 +33,7 @@ public class ConversationService {
     private final UserMapper userMapper;
     private final ConversationMapper conversationMapper;
     private final CloudinaryService cloudinaryService;
-
+    private final WebSocketMessageService webSocketMessageService;
 
     public ConversationService(
             ConversationRepository conversationRepository,
@@ -44,7 +42,8 @@ public class ConversationService {
             MessageRepository messageRepository,
             ConversationMapper conversationMapper,
             CloudinaryService cloudinaryService,
-            OnlineUsersRegistry onlineUsersRegistry
+            OnlineUsersRegistry onlineUsersRegistry,
+            WebSocketMessageService webSocketMessageService
      ) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
@@ -53,9 +52,10 @@ public class ConversationService {
         this.conversationMapper=conversationMapper;
         this.cloudinaryService=cloudinaryService;
         this.onlineUsersRegistry=onlineUsersRegistry;
+        this.webSocketMessageService=webSocketMessageService;
+    }
 
-
-    }    public GetContactsResponse getContacts(Long id){
+    public GetContactsResponse getContacts(Long id){
         List<ConversationEntity> conversations = conversationRepository.findAllByUserId(id);
 
         Map<Long, ConversationEntity> privateConversations = new HashMap<>();
@@ -110,9 +110,12 @@ public class ConversationService {
             conversation.setIsGroup(false);
             conversation.setMembers(List.of(userEntity1,userEntity2));
             conversation.setConversationKey(key);
-            ConversationEntity saved = conversationRepository.save(conversation);
-            UserContactPreviewDto contact = userMapper.mapUserWithConversation(userEntity2, saved);
-            return  new ConversationWithMessages(contact, List.of());
+            ConversationEntity savedConversation = conversationRepository.save(conversation);
+            UserContactPreviewDto contactForCreator = userMapper.mapUserWithConversation(userEntity2, savedConversation);
+            UserContactPreviewDto contactForReciever = userMapper.mapUserWithConversation(userEntity1,savedConversation);
+            webSocketMessageService.sendMessage("/topic/contacts/"+userEntity2.getId(), new ConversationWsMessage(contactForReciever, ConversationAction.CREATE));
+            return  new ConversationWithMessages(contactForCreator, List.of());
+
         }
     }
     public void kickUser(Long conversationId,Long memberId, Long currentUserId){
